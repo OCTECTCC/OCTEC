@@ -1,0 +1,12 @@
+# Ambiente virtual
+.venv/
+.env
+
+# Bytecode Python
+*.pyc
+__pycache__/
+
+# Configurações e bancos locais
+instance/
+migrations/
+*.sqlite3
