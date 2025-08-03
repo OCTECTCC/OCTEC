@@ -6,14 +6,17 @@
         <i class="bi bi-arrow-left-circle-fill"></i>
     </a>
     <div class="container-fluid login-container d-flex">
+
+        <!-- Logo -->
         <div class="col-md-6 left-image d-none d-md-block"></div>
+
         <div class="col-md-6 d-flex align-items-center justify-content-center">
             <form class="w-75">
                 <h2 class="mb-4">Login</h2>
 
                 <!-- Cargo -->
                 <div class="mb-3">
-                    <label for="cargo" class="form-label">Selecione o cargo</label>
+                    <label for="cargo" class="form-label">Selecione seu cargo</label>
                     <select class="form-select" id="cargo" required>
                         <option value="" selected disabled>Escolha uma opção</option>
                         <option value="aluno">Aluno</option>
@@ -24,13 +27,13 @@
 
                 <!-- Código da ETEC -->
                 <div class="mb-3">
-                    <label for="etec" class="form-label">Código da ETEC</label>
+                    <label for="etec" class="form-label">Código de sua ETEC</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="etec" maxlength="3" pattern="\d{3}" placeholder="Digite o código da sua ETEC (Ex: 123)" required autocomplete="off">
+                        <input type="text" class="form-control" id="etec" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required autocomplete="off">
                         <button
                             class="btn btn-outline-secondary"
                             type="button"
-                            title="Encontre a sua ETEC"
+                            title="Encontre sua ETEC"
                             data-bs-toggle="modal" 
                             data-bs-target="#etecModal" 
                         >?</button>
@@ -49,7 +52,7 @@
                     <input type="password" class="form-control" id="senha" placeholder="Digite sua senha" required>
                 </div>
 
-                <!-- Botão Entrar -->
+                <!-- Entrar -->
                 <button type="submit" class="btn btn-primary w-100">Entrar</button>
             </form>
         </div>
@@ -60,24 +63,26 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="etecModalLabel">Encontrar ETEC</h5>
+                    <h5 class="modal-title" id="etecModalLabel">Encontrar sua ETEC</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <form id="findEtecForm">
+
                         <!-- Dropdown de Cidades -->
                         <div class="mb-3">
                             <label for="cidade" class="form-label">Cidade</label>
                             <select class="form-select" id="cidade" required>
-                                <option value="" selected disabled>Selecione a cidade</option>
+                                <option value="" selected disabled>Selecione sua cidade</option>
                                 <!-- opções serão adicionadas aqui -->
                             </select>
                         </div>
+
                         <!-- Dropdown de ETECs -->
                         <div class="mb-3">
                             <label for="dropdown-etec" class="form-label">ETEC</label>
                             <select class="form-select" id="dropdown-etec" required>
-                                <option value="" selected disabled>Selecione a ETEC</option>
+                                <option value="" selected disabled>Selecione sua ETEC</option>
                                 <!-- opções serão adicionadas aqui -->
                             </select>
                         </div>

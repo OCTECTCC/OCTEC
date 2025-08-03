@@ -1,0 +1,42 @@
+{% extends "index.html" %}
+{% block title %}Primeiro acesso{% endblock %}
+{% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/primeiroAcesso.css') }}">{% endblock %}
+{% block body %}
+    <a href="{{url_for('views.login')}}" class="back-arrow">
+        <i class="bi bi-arrow-left-circle-fill"></i>
+    </a>
+    <div class="container-fluid login-container d-flex">
+
+        <!-- Logo -->
+        <div class="col-md-6 left-image d-none d-md-block"></div>
+
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <form class="w-75">
+                <h2 class="mb-4">Primeiro acesso</h2>
+
+                <p class="text-justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
+
+                <!-- Login -->
+                <div class="mb-3">
+                    <label for="login" class="form-label">Login</label>
+                    <input type="text" class="form-control" id="login" required readonly tabindex="-1">
+                </div>
+
+                <!-- Nova senha -->
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Nova senha</label>
+                    <input type="password" class="form-control" id="senha" placeholder="Digite sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                </div>
+
+                <!-- Confirmar senha -->
+                <div class="mb-3">
+                    <label for="confirmarSenha" class="form-label">Confirmar senha</label>
+                    <input type="password" class="form-control" id="confirmarSenha" placeholder="Digite novamente sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                </div>
+
+                <!-- Definir senha -->
+                <button type="submit" class="btn btn-primary w-100">Definir senha</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

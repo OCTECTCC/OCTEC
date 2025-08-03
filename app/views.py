@@ -9,3 +9,7 @@ def index():
 @views.route("/login")
 def login():
     return render_template("login.html")
+
+@views.route("/primeiroAcesso")
+def primeiroAcesso():
+    return render_template("primeiroAcesso.html")
