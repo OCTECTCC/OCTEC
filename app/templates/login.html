@@ -1,0 +1,51 @@
+{% extends "index.html" %}
+{% block title %}Login{% endblock %}
+{% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">{% endblock %}
+{% block body %}
+    <a href="{{url_for('views.index')}}" class="back-arrow">
+        <i class="bi bi-arrow-left-circle-fill"></i>
+    </a>
+    <div class="container-fluid login-container d-flex">
+        <div class="col-md-6 left-image d-none d-md-block"></div>
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <form class="w-75">
+                <h2 class="mb-4">Login</h2>
+
+                <!-- Cargo -->
+                <div class="mb-3">
+                    <label for="cargo" class="form-label">Selecione o cargo</label>
+                    <select class="form-select" id="cargo" required>
+                        <option value="" selected disabled>Escolha uma opção</option>
+                        <option value="aluno">Aluno</option>
+                        <option value="professor">Professor</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                </div>
+
+                <!-- Código da ETEC -->
+                <div class="mb-3">
+                    <label for="etec" class="form-label">Código da ETEC</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="etec" maxlength="3" pattern="\d{3}" placeholder="Ex: 123" required>
+                        <button class="btn btn-outline-secondary" type="button" title="Código de 3 dígitos da sua ETEC">?</button>
+                    </div>
+                </div>
+
+                <!-- Login -->
+                <div class="mb-3">
+                    <label for="login" class="form-label">Login</label>
+                    <input type="text" class="form-control" id="login" placeholder="Digite seu login" required>
+                </div>
+
+                <!-- Senha -->
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="senha" placeholder="Digite sua senha" required>
+                </div>
+
+                <!-- Botão Entrar -->
+                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
