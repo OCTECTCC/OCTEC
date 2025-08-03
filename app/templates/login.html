@@ -26,15 +26,21 @@
                 <div class="mb-3">
                     <label for="etec" class="form-label">Código da ETEC</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="etec" maxlength="3" pattern="\d{3}" placeholder="Ex: 123" required>
-                        <button class="btn btn-outline-secondary" type="button" title="Código de 3 dígitos da sua ETEC">?</button>
+                        <input type="text" class="form-control" id="etec" maxlength="3" pattern="\d{3}" placeholder="Digite o código da sua ETEC (Ex: 123)" required autocomplete="off">
+                        <button
+                            class="btn btn-outline-secondary"
+                            type="button"
+                            title="Encontre a sua ETEC"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#etecModal" 
+                        >?</button>
                     </div>
                 </div>
 
                 <!-- Login -->
                 <div class="mb-3">
                     <label for="login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="login" placeholder="Digite seu login" required>
+                    <input type="text" class="form-control" id="login" placeholder="Digite seu login" required autocomplete="off">
                 </div>
 
                 <!-- Senha -->
@@ -46,6 +52,47 @@
                 <!-- Botão Entrar -->
                 <button type="submit" class="btn btn-primary w-100">Entrar</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Encontrar ETEC -->
+    <div class="modal fade" id="etecModal" tabindex="-1" aria-labelledby="etecModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="etecModalLabel">Encontrar ETEC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="findEtecForm">
+                        <!-- Dropdown de Cidades -->
+                        <div class="mb-3">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <select class="form-select" id="cidade" required>
+                                <option value="" selected disabled>Selecione a cidade</option>
+                                <!-- opções serão adicionadas aqui -->
+                            </select>
+                        </div>
+                        <!-- Dropdown de ETECs -->
+                        <div class="mb-3">
+                            <label for="dropdown-etec" class="form-label">ETEC</label>
+                            <select class="form-select" id="dropdown-etec" required>
+                                <option value="" selected disabled>Selecione a ETEC</option>
+                                <!-- opções serão adicionadas aqui -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button 
+                        type="button" 
+                        class="btn btn-primary" 
+                        onclick="document.getElementById('findEtecForm').dispatchEvent(new Event('submit'))"
+                    >
+                    Selecionar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
