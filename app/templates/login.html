@@ -11,12 +11,12 @@
         <div class="col-md-6 left-image d-none d-md-block"></div>
 
         <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <form class="w-75">
+            <form class="w-75" autocomplete="off" method="POST">
                 <h2 class="mb-4">Login</h2>
 
                 <!-- Cargo -->
                 <div class="mb-3">
-                    <label for="cargo" class="form-label">Selecione seu cargo</label>
+                    <label for="cargo" class="form-label">Entrar como</label>
                     <select class="form-select" id="cargo" required>
                         <option value="" selected disabled>Escolha uma opção</option>
                         <option value="aluno">Aluno</option>
@@ -43,7 +43,7 @@
                 <!-- Login -->
                 <div class="mb-3">
                     <label for="login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="login" placeholder="Digite seu login" required autocomplete="off">
+                    <input type="text" class="form-control" id="login" placeholder="Digite seu login" required>
                 </div>
 
                 <!-- Senha -->
