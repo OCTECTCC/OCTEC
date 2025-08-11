@@ -7,7 +7,7 @@ class Cidades(db.Model):
     id_cidade = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome_cidade = db.Column(db.String(128), nullable=False)
 
-class ETECs(db.Model):
+class Etecs(db.Model):
     __tablename__ = "etecs"
     id_etec = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo_etec = db.Column(db.String(3), unique=True, nullable=False)
@@ -51,6 +51,8 @@ class Alunos(db.Model, UserMixin):
         self.nome_aluno = nome_aluno
         self.modulo_aluno = modulo_aluno
         self.turma_aluno = turma_aluno
+        self.situacao_aluno = situacao_aluno
+        self.ano_origem_aluno = ano_origem_aluno
         self.id_curso_aluno = id_curso_aluno
         self.id_etec_aluno = id_etec_aluno
 

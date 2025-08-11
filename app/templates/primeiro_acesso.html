@@ -2,7 +2,7 @@
 {% block title %}Primeiro acesso{% endblock %}
 {% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/primeiro_acesso.css') }}">{% endblock %}
 {% block body %}
-    <a href="{{url_for('views.login')}}" class="back-arrow">
+    <a href="{{ url_for('views.login') }}" class="back-arrow">
         <i class="bi bi-arrow-left-circle-fill"></i>
     </a>
     <div class="container-fluid login-container d-flex">

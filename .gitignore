@@ -10,3 +10,4 @@ __pycache__/
 instance/
 migrations/
 *.sqlite3
+populate.py
