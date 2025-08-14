@@ -4,36 +4,48 @@
 ### Bem vindo a OCTEC!
 
 
-![OCTEC_logo](https://ibb.co/j9yNjXkJ)
+![OCTEC_logo_V2](app/static/img/logo_V2.png)
+<p align="center">
+    <img src="app/static/img/logo_V2.png" alt="OCTEC_logo_V2" style="max-width: 100%; height: auto;" width="326"> <!-- Altera as propriedades da imagem por HTML! -->
+</p>
 
-
+<p align="justify">
 OCTEC surge como um projeto TCC que busca construir um sistema **simples**, **acessível** e **prático** para resolver os principais problemas enfrentados na **comunicação** e **integração escolar**. Tendo em mente a lei federal _nº 15.100/2025_, que diz sobre a inadequabilidade do uso de smartphones; há a necessidade de quebrar as barreiras técnicas como a **Autenticação de Dois Fatores (2FA)** e dependências de infraestruturas externas.
+</p>
 
 
 ### Principais Recursos
+<p align="justify">
 Nosso objetivo é oferecer diferentes recursos e funcionalidades que agreguem valor ao usuário final e principalmente resolva um problema real! Tais como: Canais para troca de ideias, mural de avisos, quadro para acompanhamento de trabalhos e tarefas e espaço para disponibilização de materiais de estudo.
-
+</p>
 
 ### Stack Tecnológica
 
 
 #### Web e estruturação
+<p align="justify">
 Sistema Web com **HTML** para marcação textual e estruturação do projeto; **CSS** findando estilizar, contribuindo na estética visual de elementos e interfaces de usuário juntamente com o _framework_ **Bootstrap**.
+</p>
 
 
 #### Backend e regra de negócios
 
 
-##### JavaScript
+#### JavaScript
+<p align="justify">
 Regras de negócios, interações, lógica de programação e comunicar com os demais módulos na arquitetura de backend.
+</p>
 
-
-##### Banco de dados
+#### Banco de dados
+<p align="justify">
 Para a pertinência de informações, cadastro de usuários, composição, edição e exclusão de postagens, bem como indexação e paginação de conteúdos de maneira recursiva; é de suma valia deter uma infraestrutura de banco de dados relacional robusta e escalável como o **PostgreSQL**.
+</p>
 
 
-##### Python
+#### Python
+<p align="justify">
 Utilizamos o **Flask**, um framework Python que busca atuar no backend da solução e orquestrar as requisições à base de dados e construir as manifestações na interface gráfica do usuário (UI) para as informações recuperadas do servidor, bem como gerir as mudanças de estado e interações com a referida UI.
+</p>
 
 
 ### Desenvolvedores
