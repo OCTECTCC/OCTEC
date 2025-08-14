@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, redirect, url_for, request, session
+from flask import render_template, Blueprint, redirect, url_for, request, session, flash
 from flask_login import current_user, login_user
 from werkzeug.security import check_password_hash
 from .models import *
@@ -32,6 +32,7 @@ def login():
         etec = Etecs.query.filter_by(codigo_etec=etec_usuario).first()
 
         if not etec:
+            flash("ETEC inexistente", "danger")
             return redirect(url_for("views.login"))
 
         if tipo_usuario == 1:
@@ -39,6 +40,7 @@ def login():
 
             if aluno:
                 if etec.id_etec != aluno.id_etec_aluno:
+                    flash("ETEC inválida", "danger")
                     return redirect(url_for("views.login"))
 
                 if check_password_hash(aluno.senha_aluno, aluno.cpf_aluno) and senha_usuario == aluno.cpf_aluno:
@@ -47,12 +49,17 @@ def login():
                 if check_password_hash(aluno.senha_aluno, senha_usuario):
                     login_user(aluno)
                     return redirect(url_for("views.index"))
+                else:
+                    flash("Usuário ou senha incorretos", "danger")
+            else:
+                flash("RM inválido", "danger")
 
         elif tipo_usuario == 2:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
             if professor:
                 if etec.id_etec != professor.id_etec_prof:
+                    flash("ETEC inválida", "danger")
                     return redirect(url_for("views.login"))      
 
                 if check_password_hash(professor.senha_prof, professor.cpf_prof) and senha_usuario == professor.cpf_prof:
@@ -60,13 +67,18 @@ def login():
 
                 if check_password_hash(professor.senha_prof, senha_usuario):
                     login_user(professor)
-                    return redirect(url_for("views.index"))          
+                    return redirect(url_for("views.index"))  
+                else:
+                    flash("Usuário ou senha incorretos", "danger")
+            else:
+                flash("Login inválido", "danger") 
                 
         elif tipo_usuario == 3:
             administrador = Administradores.query.filter_by(login_adm=login_usuario).first()
 
             if administrador:
                 if etec.id_etec != administrador.id_etec_adm:
+                    flash("ETEC inválida", "danger")
                     return redirect(url_for("views.login"))                
                 
                 if check_password_hash(administrador.senha_adm, administrador.cpf_adm) and senha_usuario == administrador.cpf_adm:
@@ -75,6 +87,10 @@ def login():
                 if check_password_hash(administrador.senha_adm, senha_usuario):
                     login_user(administrador)
                     return redirect(url_for("views.index")) 
+                else:
+                    flash("Usuário ou senha incorretos", "danger")
+            else:
+                flash("Login inválido", "danger") 
                 
     return render_template("login.html", cargos=cargos, cidades=cidades)
 
