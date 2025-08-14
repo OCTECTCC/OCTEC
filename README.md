@@ -4,7 +4,6 @@
 ### Bem vindo a OCTEC!
 
 
-![OCTEC_logo_V2](app/static/img/logo_V2.png)
 <p align="center">
     <img src="app/static/img/logo_V2.png" alt="OCTEC_logo_V2" style="max-width: 100%; height: auto;" width="326"> <!-- Altera as propriedades da imagem por HTML! -->
 </p>
