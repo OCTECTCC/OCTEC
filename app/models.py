@@ -34,7 +34,7 @@ class Cargos(db.Model):
 class Alunos(db.Model, UserMixin):
     __tablename__ = "alunos"
     id_aluno = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    rm_aluno = db.Column(db.String(5), nullable=False)
+    rm_aluno = db.Column(db.String(6), nullable=False)
     senha_aluno = db.Column(db.String(128), nullable=False)
     cpf_aluno = db.Column(db.String(11), nullable=False)
     nome_aluno = db.Column(db.String(128), nullable=False)
