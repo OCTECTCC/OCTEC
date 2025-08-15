@@ -16,8 +16,8 @@
 
                 <!-- Tipo de usuário -->
                 <div class="mb-3">
-                    <label for="tipo_usuario" class="form-label">Entrar como</label>
-                    <select class="form-select" id="tipo_usuario" name="tipo_usuario" required tabindex="1">
+                    <label for="select_usuario" class="form-label">Entrar como</label>
+                    <select class="form-select" id="select_usuario" name="tipo_usuario" required tabindex="1">
                         <option value="" selected disabled>Escolha uma opção</option>
                         {% for cargo in cargos %}
                             <option value="{{ cargo.id_cargo }}">{{ cargo.descricao_cargo }}</option>
@@ -27,29 +27,23 @@
 
                 <!-- Código da ETEC -->
                 <div class="mb-3">
-                    <label for="etec" class="form-label">Código de sua ETEC</label>
+                    <label for="input_etec" class="form-label">Código de sua ETEC</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="etec" name="etec_usuario" minlength="3" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required tabindex="2">
-                        <button
-                            class="btn btn-outline-secondary"
-                            type="button"
-                            title="Encontre sua ETEC"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#etecModal" 
-                        >?</button>
+                        <input type="text" class="form-control" id="input_etec" name="etec_usuario" minlength="3" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required tabindex="2">
+                        <button class="btn btn-outline-secondary" type="button" title="Encontre sua ETEC" data-bs-toggle="modal" data-bs-target="#div_modal_etec">?</button>
                     </div>
                 </div>
 
                 <!-- Login -->
                 <div class="mb-3">
-                    <label for="login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="login" name="login_usuario" placeholder="Digite seu login" required tabindex="3">
+                    <label for="input_login" class="form-label">Login</label>
+                    <input type="text" class="form-control" id="input_login" name="login_usuario" placeholder="Digite seu login" required tabindex="3">
                 </div>
 
                 <!-- Senha -->
                 <div class="mb-3">
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="senha" name="senha_usuario" placeholder="Digite sua senha" required tabindex="4">
+                    <label for="input_senha" class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="input_senha" name="senha_usuario" placeholder="Digite sua senha" required tabindex="4">
                 </div>
 
                 <!-- Entrar -->
@@ -59,20 +53,20 @@
     </div>
 
     <!-- Modal Encontrar ETEC -->
-    <div class="modal fade" id="etecModal" tabindex="-1" aria-labelledby="etecModalLabel" aria-hidden="true">
+    <div class="modal fade" id="div_modal_etec" tabindex="-1" aria-labelledby="div_modal_etec_label" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="etecModalLabel">Encontrar sua ETEC</h5>
+                    <h5 class="modal-title" id="div_modal_etec_label">Encontrar sua ETEC</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="findEtecForm">
+                    <form id="form_encontrar_etec">
 
                         <!-- Dropdown de Cidades -->
                         <div class="mb-3">
-                            <label for="cidade" class="form-label">Cidade</label>
-                            <select class="form-select" id="cidade" required>
+                            <label for="select_cidade" class="form-label">Cidade</label>
+                            <select class="form-select" id="select_cidade" required>
                                 <option value="" selected disabled>Selecione sua cidade</option>
                                 {% for cidade in cidades %}
                                     <option value="{{ cidade.id_cidade }}">{{ cidade.nome_cidade }}</option>
@@ -82,24 +76,18 @@
 
                         <!-- Dropdown de ETECs -->
                         <div class="mb-3">
-                            <label for="dropdown-etec" class="form-label">ETEC</label>
-                            <select class="form-select" id="dropdown-etec" required>
+                            <label for="select_etec" class="form-label">ETEC</label>
+                            <select class="form-select" id="select_etec" required>
                                 <option value="" selected disabled>Selecione sua ETEC</option>
                             </select>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button 
-                        type="button" 
-                        class="btn btn-primary" 
-                        onclick="document.getElementById('findEtecForm').dispatchEvent(new Event('submit'))"
-                    >
-                    Selecionar
-                    </button>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('form_encontrar_etec').dispatchEvent(new Event('submit'))">Selecionar</button>
                 </div>
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/login.js' )}}"></script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 {% endblock %}

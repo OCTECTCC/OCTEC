@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const tipo_usuario = document.getElementById('tipo_usuario');
+    const tipo_usuario = document.getElementById('select_usuario');
     let tipo_usuario_anterior = tipo_usuario.value
-    const login_label = document.querySelector('label[for="login"]');
-    const login_input = document.getElementById('login');
+    const login_label = document.querySelector('label[for="input_login"]');
+    const login_input = document.getElementById('input_login');
 
     function update_login() {
         const opcao = tipo_usuario.options[tipo_usuario.selectedIndex];
