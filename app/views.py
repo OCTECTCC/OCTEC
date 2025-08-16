@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, redirect, url_for, request, session, flash
+from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify
 from flask_login import current_user, login_user
 from werkzeug.security import check_password_hash
 from .models import *
@@ -92,7 +92,26 @@ def login():
             else:
                 flash("Login inválido", "danger") 
                 
-    return render_template("login.html", cargos=cargos, cidades=cidades)
+    return render_template("login.html", cargos=cargos, cidades=cidades, etecs=etecs)
+
+@views.route("/api/etecs")
+def etecs_por_cidade():
+    id_cidade = request.args.get("cidade", type=int)
+
+    if not id_cidade:
+        return jsonify([])
+
+    etecs = Etecs.query.filter_by(id_cidade_etec=id_cidade).order_by(Etecs.nome_etec).all()
+
+    resultado = [
+        {
+            "id_etec": etec.id_etec,
+            "codigo_etec": etec.codigo_etec,
+            "nome_etec": etec.nome_etec
+        }
+        for etec in etecs
+    ]
+    return jsonify(resultado)
 
 @views.route("/primeiro_acesso")
 def primeiro_acesso():    

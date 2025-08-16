@@ -84,10 +84,11 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="document.getElementById('form_encontrar_etec').dispatchEvent(new Event('submit'))">Selecionar</button>
+                    <button id="button_etec" type="button" class="btn btn-primary">Selecionar</button>
                 </div>
             </div>
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/etecs.js') }}"></script>
 {% endblock %}
