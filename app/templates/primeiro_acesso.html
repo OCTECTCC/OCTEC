@@ -11,7 +11,7 @@
         <div class="col-md-6 left-image d-none d-md-block"></div>
 
         <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <form class="w-75">
+            <form class="w-75" method="POST">
                 <h2 class="mb-4">Primeiro acesso</h2>
 
                 <p class="text-justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
@@ -19,19 +19,19 @@
                 <!-- Login -->
                 <div class="mb-3">
                     <label for="input_login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="input_login" required readonly tabindex="-1">
+                    <input type="text" class="form-control" id="input_login" value="{{ login_usuario }}" required readonly tabindex="-1">
                 </div>
 
                 <!-- Nova senha -->
                 <div class="mb-3">
                     <label for="input_senha" class="form-label">Nova senha</label>
-                    <input type="password" class="form-control" id="input_senha" placeholder="Digite sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                    <input type="password" class="form-control" id="input_senha" name="senha_usuario" placeholder="Digite sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
                 </div>
 
                 <!-- Confirmar senha -->
                 <div class="mb-3">
                     <label for="input_confirmar_senha" class="form-label">Confirmar senha</label>
-                    <input type="password" class="form-control" id="input_confirmar_senha" placeholder="Digite novamente sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                    <input type="password" class="form-control" id="input_confirmar_senha" name="confirmar_senha_usuario" placeholder="Digite novamente sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
                 </div>
 
                 <!-- Definir senha -->
