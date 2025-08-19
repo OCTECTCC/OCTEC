@@ -1,5 +1,5 @@
 from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from .models import *
 from . import login_manager, db
@@ -12,13 +12,10 @@ def load_user(id_usuario):
 
     if session_tipo_usuario == 1:
         return Alunos.query.get(int(id_usuario))
-
     elif session_tipo_usuario == 2:
         return  Professores.query.get(int(id_usuario))
-
     elif session_tipo_usuario == 3:
         return Administradores.query.get(int(id_usuario))
-
     else:
         return None
 
@@ -135,6 +132,13 @@ def etecs_por_cidade():
         for etec in etecs
     ]
     return jsonify(resultado)
+
+@views.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    session.clear()
+    return redirect(url_for("views.index"))
 
 @views.route("/primeiro_acesso", methods=["GET","POST"])
 def primeiro_acesso():
