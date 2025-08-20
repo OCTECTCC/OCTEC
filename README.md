@@ -9,7 +9,7 @@
 </p>
 
 <p align="justify">
-OCTEC surge como um projeto TCC que busca construir um sistema **simples**, **acessível** e **prático** para resolver os principais problemas enfrentados na **comunicação** e **integração escolar**. Tendo em mente a lei federal _nº 15.100/2025_, que diz sobre a inadequabilidade do uso de smartphones; há a necessidade de quebrar as barreiras técnicas como a **Autenticação de Dois Fatores (2FA)** e dependências de infraestruturas externas.
+OCTEC surge como um projeto TCC que busca construir um sistema <b>simples</b>, <b>acessível</b> e <b>prático</b> para resolver os principais problemas enfrentados na <b>comunicação</b> e <b>integração escolar</b>. Tendo em mente a lei federal <i>nº 15.100/2025</i>, que diz sobre a inadequabilidade do uso de smartphones; há a necessidade de quebrar as barreiras técnicas como a <b>Autenticação de Dois Fatores (2FA)</b> e dependências de infraestruturas externas.
 </p>
 
 
@@ -23,7 +23,7 @@ Nosso objetivo é oferecer diferentes recursos e funcionalidades que agreguem va
 
 #### Web e estruturação
 <p align="justify">
-Sistema Web com **HTML** para marcação textual e estruturação do projeto; **CSS** findando estilizar, contribuindo na estética visual de elementos e interfaces de usuário juntamente com o _framework_ **Bootstrap**.
+Sistema Web com <b>HTML</b> para marcação textual e estruturação do projeto; <b>CSS</b> findando estilizar, contribuindo na estética visual de elementos e interfaces de usuário juntamente com o <i>framework</i> <b>Bootstrap</b>.
 </p>
 
 
@@ -37,13 +37,13 @@ Regras de negócios, interações, lógica de programação e comunicar com os d
 
 #### Banco de dados
 <p align="justify">
-Para a pertinência de informações, cadastro de usuários, composição, edição e exclusão de postagens, bem como indexação e paginação de conteúdos de maneira recursiva; é de suma valia deter uma infraestrutura de banco de dados relacional robusta e escalável como o **PostgreSQL**.
+Para a pertinência de informações, cadastro de usuários, composição, edição e exclusão de postagens, bem como indexação e paginação de conteúdos de maneira recursiva; é de suma valia deter uma infraestrutura de banco de dados relacional robusta e escalável como o <b>PostgreSQL</b>.
 </p>
 
 
 #### Python
 <p align="justify">
-Utilizamos o **Flask**, um framework Python que busca atuar no backend da solução e orquestrar as requisições à base de dados e construir as manifestações na interface gráfica do usuário (UI) para as informações recuperadas do servidor, bem como gerir as mudanças de estado e interações com a referida UI.
+Utilizamos o <b>Flask</b>, um framework Python que busca atuar no backend da solução e orquestrar as requisições à base de dados e construir as manifestações na interface gráfica do usuário (UI) para as informações recuperadas do servidor, bem como gerir as mudanças de estado e interações com a referida UI.
 </p>
 
 

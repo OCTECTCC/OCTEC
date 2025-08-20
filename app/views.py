@@ -64,7 +64,7 @@ def login():
                 else:
                     flash("Usuário ou senha incorretos", "danger")
             else:
-                flash("RM inválido", "danger")
+                flash("Usuário ou senha incorretos", "danger")
 
         elif tipo_usuario == 2:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
@@ -86,7 +86,7 @@ def login():
                 else:
                     flash("Usuário ou senha incorretos", "danger")
             else:
-                flash("Login inválido", "danger") 
+                flash("Usuário ou senha incorretos", "danger")
                 
         elif tipo_usuario == 3:
             administrador = Administradores.query.filter_by(login_adm=login_usuario).first()
@@ -108,7 +108,7 @@ def login():
                 else:
                     flash("Usuário ou senha incorretos", "danger")
             else:
-                flash("Login inválido", "danger") 
+                flash("Usuário ou senha incorretos", "danger")
 
     session.pop("session_tipo_usuario", None)
     session.pop("session_login_usuario", None)    
