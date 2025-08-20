@@ -138,7 +138,7 @@ def etecs_por_cidade():
 def logout():
     logout_user()
     session.clear()
-    return redirect(url_for("views.index"))
+    return redirect(url_for("views.login"))
 
 @views.route("/primeiro_acesso", methods=["GET","POST"])
 def primeiro_acesso():
