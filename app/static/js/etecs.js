@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const input_etec = document.getElementById('input_etec')
     const div_modal_etec = document.getElementById('div_modal_etec')
 
-    function getModalInstance() {
+    function instanciar_modal() {
         return bootstrap.Modal.getInstance(div_modal_etec) || new bootstrap.Modal(div_modal_etec)
     }
 
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             input_etec.value = etec_escolhida;
 
-            const modal = getModalInstance()
+            const modal = instanciar_modal()
             modal.hide()
         });
     }

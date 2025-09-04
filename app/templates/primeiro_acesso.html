@@ -2,40 +2,28 @@
 {% block title %}Primeiro acesso{% endblock %}
 {% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/primeiro_acesso.css') }}">{% endblock %}
 {% block body %}
-    <a href="{{ url_for('views.login') }}" class="back-arrow">
+    <a class="icone_voltar" href="{{ url_for('views.login') }}">
         <i class="bi bi-arrow-left-circle-fill"></i>
     </a>
-    <div class="container-fluid login-container d-flex">
-
-        <!-- Logo -->
-        <div class="col-md-6 left-image d-none d-md-block"></div>
-
-        <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <form class="w-75" method="POST">
+    <div class="d-flex container-fluid" style="min-height: 90vh">
+        <div class="d-none d-md-block col-md-6 logo"></div>
+        <div class="d-flex align-items-center justify-content-center col-md-6">
+            <form class="w-75" method="POST" autocomplete="off">
                 <h2 class="mb-4">Primeiro acesso</h2>
-
-                <p class="text-justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
-
-                <!-- Login -->
+                <p style="text-align: justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
                 <div class="mb-3">
-                    <label for="input_login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="input_login" value="{{ login_usuario }}" required readonly tabindex="-1">
+                    <label class="form-label" for="input_login">Login</label>
+                    <input id="input_login" class="form-control" type="text" value="{{ login_usuario }}" required readonly tabindex="-1">
                 </div>
-
-                <!-- Nova senha -->
                 <div class="mb-3">
-                    <label for="input_senha" class="form-label">Nova senha</label>
-                    <input type="password" class="form-control" id="input_senha" name="senha_usuario" placeholder="Digite sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                    <label class="form-label" for="input_senha">Nova senha</label>
+                    <input id="input_senha" name="senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite sua nova senha" required tabindex="1">
                 </div>
-
-                <!-- Confirmar senha -->
                 <div class="mb-3">
                     <label for="input_confirmar_senha" class="form-label">Confirmar senha</label>
-                    <input type="password" class="form-control" id="input_confirmar_senha" name="confirmar_senha_usuario" placeholder="Digite novamente sua nova senha" required minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}">
+                    <input id="input_confirmar_senha" name="confirmar_senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite novamente sua nova senha" required tabindex="2">
                 </div>
-
-                <!-- Definir senha -->
-                <button type="submit" class="btn btn-primary w-100">Definir senha</button>
+                <button class="btn btn-primary w-100" type="submit">Definir senha</button>
             </form>
         </div>
     </div>

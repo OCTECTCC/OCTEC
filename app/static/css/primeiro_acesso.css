@@ -1,17 +1,11 @@
-.login-container {
-    min-height: 90vh;
-}
-.left-image {
-    background: url('../img/logo.png') no-repeat center center;
-    background-size: cover;
-}
-.back-arrow {
+.icone_voltar {
     position: absolute;
     top: 20px;
     left: 20px;
     font-size: 24px;
     text-decoration: none;
 }
-.text-justify {
-    text-align: justify;
+.logo {
+    background: url('../img/logo.png') no-repeat center center;
+    background-size: cover;
 }

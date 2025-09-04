@@ -2,89 +2,70 @@
 {% block title %}Login{% endblock %}
 {% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">{% endblock %}
 {% block body %}
-    <a href="{{ url_for('views.index') }}" class="back-arrow">
+    <a class="icone_voltar" href="{{ url_for('views.index') }}">
         <i class="bi bi-arrow-left-circle-fill"></i>
     </a>
-    <div class="container-fluid login-container d-flex">
-
-        <!-- Logo -->
-        <div class="col-md-6 left-image d-none d-md-block"></div>
-
-        <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <form class="w-75" autocomplete="off" method="POST">
+    <div class="d-flex container-fluid" style="min-height: 90vh">
+        <div class="d-none d-md-block col-md-6 logo"></div>
+        <div class="d-flex align-items-center justify-content-center col-md-6">
+            <form class="w-75" method="POST" autocomplete="off">
                 <h2 class="mb-4">Login</h2>
-
-                <!-- Tipo de usuário -->
                 <div class="mb-3">
-                    <label for="select_usuario" class="form-label">Entrar como</label>
-                    <select class="form-select" id="select_usuario" name="tipo_usuario" required tabindex="1">
+                    <label class="form-label" for="select_usuario">Entrar como</label>
+                    <select id="select_usuario" name="tipo_usuario" class="form-select" required tabindex="1">
                         <option value="" selected disabled>Escolha uma opção</option>
                         {% for cargo in cargos %}
                             <option value="{{ cargo.id_cargo }}">{{ cargo.descricao_cargo }}</option>
                         {% endfor %}
                     </select>
                 </div>
-
-                <!-- Código da ETEC -->
                 <div class="mb-3">
-                    <label for="input_etec" class="form-label">Código de sua ETEC</label>
+                    <label class="form-label" for="input_etec">Código de sua ETEC</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="input_etec" name="etec_usuario" minlength="3" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required tabindex="2">
+                        <input id="input_etec" name="etec_usuario" class="form-control" type="text" minlength="3" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required tabindex="2">
                         <button class="btn btn-outline-secondary" type="button" title="Encontre sua ETEC" data-bs-toggle="modal" data-bs-target="#div_modal_etec">?</button>
                     </div>
                 </div>
-
-                <!-- Login -->
                 <div class="mb-3">
-                    <label for="input_login" class="form-label">Login</label>
-                    <input type="text" class="form-control" id="input_login" name="login_usuario" placeholder="Digite seu login" required tabindex="3">
+                    <label class="form-label" for="input_login">Login</label>
+                    <input id="input_login" name="login_usuario" class="form-control" type="text" placeholder="Digite seu login" required tabindex="3">
                 </div>
-
-                <!-- Senha -->
                 <div class="mb-3">
-                    <label for="input_senha" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="input_senha" name="senha_usuario" placeholder="Digite sua senha" required tabindex="4">
+                    <label class="form-label" for="input_senha">Senha</label>
+                    <input id="input_senha" name="senha_usuario" class="form-control" type="password" placeholder="Digite sua senha" required tabindex="4">
                 </div>
-
-                <!-- Entrar -->
-                <button type="submit" class="btn btn-primary w-100" tabindex="5">Entrar</button>
+                <button class="btn btn-primary w-100" type="submit" tabindex="5">Entrar</button>
             </form>
         </div>
     </div>
-
-    <!-- Modal Encontrar ETEC -->
-    <div class="modal fade" id="div_modal_etec" tabindex="-1" aria-labelledby="div_modal_etec_label" aria-hidden="true">
+    <div id="div_modal_etec" class="modal fade" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="div_modal_etec_label">Encontrar sua ETEC</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    <h5 id="div_modal_etec_label" class="modal-title">Encontrar sua ETEC</h5>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="form_encontrar_etec">
-
-                        <!-- Dropdown de Cidades -->
                         <div class="mb-3">
-                            <label for="select_cidade" class="form-label">Cidade</label>
-                            <select class="form-select" id="select_cidade" required>
+                            <label class="form-label" for="select_cidade">Cidade</label>
+                            <select id="select_cidade" class="form-select" required>
                                 <option value="" selected disabled>Selecione sua cidade</option>
                                 {% for cidade in cidades %}
                                     <option value="{{ cidade.id_cidade }}">{{ cidade.nome_cidade }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <!-- Dropdown de ETECs -->
                         <div class="mb-3">
-                            <label for="select_etec" class="form-label">ETEC</label>
-                            <select class="form-select" id="select_etec" required>
+                            <label class="form-label" for="select_etec">ETEC</label>
+                            <select id="select_etec" class="form-select" required>
                                 <option value="" selected disabled>Selecione sua ETEC</option>
                             </select>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button id="button_etec" type="button" class="btn btn-primary">Selecionar</button>
+                    <button id="button_etec" class="btn btn-primary" type="button">Selecionar</button>
                 </div>
             </div>
         </div>
