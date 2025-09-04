@@ -8,19 +8,26 @@ views = Blueprint("views", __name__)
 
 @login_manager.user_loader
 def load_user(id_usuario):
-    session_tipo_usuario = session.get("session_tipo_usuario")
+    tipo_usuario = session.get("session_tipo_usuario")
 
-    if session_tipo_usuario == 1:
+    if tipo_usuario == 1:
         return Alunos.query.get(int(id_usuario))
-    elif session_tipo_usuario == 2:
+    elif tipo_usuario == 2:
         return  Professores.query.get(int(id_usuario))
-    elif session_tipo_usuario == 3:
+    elif tipo_usuario == 3:
         return Administradores.query.get(int(id_usuario))
     else:
         return None
 
 @views.route("/")
 def index():
+    if current_user.is_authenticated:
+        canais = Canais.query.order_by(Canais.descricao_canal).all()
+
+        tipo_usuario = session.get("session_tipo_usuario")
+
+        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario)
+
     return render_template("index.html")
 
 @views.route("/login", methods=["GET","POST"])
@@ -145,10 +152,10 @@ def primeiro_acesso():
     if current_user.is_authenticated:
         return redirect(url_for("views.index"))
 
-    session_tipo_usuario = session.get("session_tipo_usuario")
-    session_login_usuario = session.get("session_login_usuario")
+    tipo_usuario = session.get("session_tipo_usuario")
+    login_usuario = session.get("session_login_usuario")
 
-    if not session_tipo_usuario or not session_login_usuario:
+    if not tipo_usuario or not login_usuario:
         session.pop("session_tipo_usuario", None)
         session.pop("session_login_usuario", None)
         flash("Acesso não autorizado", "danger")
@@ -162,8 +169,8 @@ def primeiro_acesso():
             flash("As senhas não coincidem", "danger")
             return redirect(url_for("views.primeiro_acesso"))
 
-        if session_tipo_usuario == 1:
-            aluno = Alunos.query.filter_by(rm_aluno=session_login_usuario).first()
+        if tipo_usuario == 1:
+            aluno = Alunos.query.filter_by(rm_aluno=login_usuario).first()
 
             if not aluno:
                 session.pop("session_tipo_usuario", None)
@@ -179,8 +186,8 @@ def primeiro_acesso():
             flash("Senha redefinida com sucesso!", "success")
             return redirect(url_for("views.login"))
 
-        elif session_tipo_usuario == 2:
-            professor = Professores.query.filter_by(login_prof=session_login_usuario).first()
+        elif tipo_usuario == 2:
+            professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
             if not professor:
                 session.pop("session_tipo_usuario", None)
@@ -196,8 +203,8 @@ def primeiro_acesso():
             flash("Senha redefinida com sucesso!", "success")
             return redirect(url_for("views.login"))
         
-        elif session_tipo_usuario == 3:
-            administrador = Administradores.query.filter_by(login_adm=session_login_usuario).first()
+        elif tipo_usuario == 3:
+            administrador = Administradores.query.filter_by(login_adm=login_usuario).first()
 
             if not administrador:
                 session.pop("session_tipo_usuario", None)
@@ -213,4 +220,4 @@ def primeiro_acesso():
             flash("Senha redefinida com sucesso!", "success")
             return redirect(url_for("views.login"))
 
-    return render_template("primeiro_acesso.html", login_usuario=session_login_usuario)
+    return render_template("primeiro_acesso.html", login_usuario=login_usuario)
