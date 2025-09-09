@@ -7,6 +7,8 @@ class Cidades(db.Model):
     id_cidade = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome_cidade = db.Column(db.String(128), nullable=False)
 
+    etecs_cidade = db.relationship("Etecs", back_populates="cidade_etec")
+
 class Etecs(db.Model):
     __tablename__ = "etecs"
     id_etec = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -14,17 +16,29 @@ class Etecs(db.Model):
     nome_etec = db.Column(db.String(128), nullable=False)
     id_cidade_etec = db.Column(db.Integer, db.ForeignKey("cidades.id_cidade"), nullable=False)
 
+    cidade_etec = db.relationship("Cidades", back_populates="etecs_cidade")
+    
+    alunos_etec = db.relationship("Alunos", back_populates="etec_aluno")
+    professores_etec = db.relationship("Professores", back_populates="etec_prof")
+    aulas_etec = db.relationship("Aulas", back_populates="etec_aula")
+
 class Cursos(db.Model):
     __tablename__ = "cursos"
     id_curso = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    sigla_curso = db.Column(db.String(10), nullable=False)
     descricao_curso = db.Column(db.String(128), nullable=False)
     turno_curso = db.Column(db.String(128), nullable=False)
-    qtd_modulos_curso = db.Column(db.Integer, nullable=False)
+    qtd_modulos_curso = db.Column(db.Numeric(1), nullable=False)
+
+    alunos_curso = db.relationship("Alunos", back_populates="curso_aluno")
+    aulas_curso = db.relationship("Aulas", back_populates="curso_aula")
 
 class Materias(db.Model):
     __tablename__ = "materias"
     id_materia = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao_materia = db.Column(db.String(128), nullable=False)
+
+    aulas_materia = db.relationship("Aulas", back_populates="materia_aula")
 
 class Cargos(db.Model):
     __tablename__ = "cargos"
@@ -38,12 +52,15 @@ class Alunos(db.Model, UserMixin):
     senha_aluno = db.Column(db.String(128), nullable=False)
     cpf_aluno = db.Column(db.String(11), nullable=False)
     nome_aluno = db.Column(db.String(128), nullable=False)
-    modulo_aluno = db.Column(db.Integer, nullable=False)
+    modulo_aluno = db.Column(db.Numeric(1), nullable=False)
     turma_aluno = db.Column(db.String(1), nullable=False)
     situacao_aluno = db.Column(db.String(128), nullable=False)
-    ano_origem_aluno = db.Column(db.Integer, nullable=False)
+    ano_origem_aluno = db.Column(db.Numeric(4), nullable=False)
     id_curso_aluno = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     id_etec_aluno = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+
+    curso_aluno = db.relationship("Cursos", back_populates="alunos_curso")
+    etec_aluno = db.relationship("Etecs", back_populates="alunos_etec")
 
     def __init__(self, rm_aluno, cpf_aluno, nome_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
@@ -73,6 +90,10 @@ class Professores(db.Model, UserMixin):
     cpf_prof = db.Column(db.String(11), nullable=False)
     nome_prof = db.Column(db.String(128), nullable=False)
     id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+
+    etec_prof = db.relationship("Etecs", back_populates="professores_etec")
+
+    aulas_prof = db.relationship("Aulas", back_populates="professor_aula")
 
     def __init__(self, login_prof, cpf_prof, nome_prof, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
@@ -114,12 +135,19 @@ class Administradores(db.Model, UserMixin):
 class Aulas(db.Model):
     __tablename__ = "aulas"
     id_aula = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    modulo_aula = db.Column(db.Integer, nullable=False)
+    modulo_aula = db.Column(db.Numeric(1), nullable=False)
     turma_aula = db.Column(db.String(2), nullable=False)
+    ano_aula = db.Column(db.Numeric(4), nullable=False)
+    semestre_aula = db.Column(db.Numeric(1), nullable=False)
     id_curso_aula = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     id_materia_aula = db.Column(db.Integer, db.ForeignKey("materias.id_materia"), nullable=False)
     id_professor_aula = db.Column(db.Integer, db.ForeignKey("professores.id_prof"), nullable=False)
     id_etec_aula = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+
+    curso_aula = db.relationship("Cursos", back_populates="aulas_curso")
+    materia_aula = db.relationship("Materias", back_populates="aulas_materia")
+    professor_aula = db.relationship("Professores", back_populates="aulas_prof")
+    etec_aula = db.relationship("Etecs", back_populates="aulas_etec")
 
 class Canais(db.Model):
     __tablename__ = "canais"
