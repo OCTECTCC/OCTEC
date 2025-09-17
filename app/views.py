@@ -14,8 +14,6 @@ def load_user(id_usuario):
         return Alunos.query.get(int(id_usuario))
     elif tipo_usuario == 2:
         return  Professores.query.get(int(id_usuario))
-    elif tipo_usuario == 3:
-        return Administradores.query.get(int(id_usuario))
     else:
         return None
 
@@ -24,7 +22,7 @@ def index():
     if current_user.is_authenticated:
         canais = Canais.query.order_by(Canais.descricao_canal).all()
 
-        tipo_usuario = session.get("session_tipo_usuario")
+        tipo_usuario = current_user.id_cargo_usuario
 
         return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario)
 
@@ -90,28 +88,6 @@ def login():
                     session["session_tipo_usuario"] = tipo_usuario
                     login_user(professor)
                     return redirect(url_for("views.index"))  
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
-                flash("Usuário ou senha incorretos", "danger")
-                
-        elif tipo_usuario == 3:
-            administrador = Administradores.query.filter_by(login_adm=login_usuario).first()
-
-            if administrador:
-                if etec.id_etec != administrador.id_etec_adm:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))                
-                
-                if check_password_hash(administrador.senha_adm, administrador.cpf_adm) and senha_usuario == administrador.cpf_adm:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-
-                if check_password_hash(administrador.senha_adm, senha_usuario):
-                    session["session_tipo_usuario"] = tipo_usuario
-                    login_user(administrador)
-                    return redirect(url_for("views.index")) 
                 else:
                     flash("Usuário ou senha incorretos", "danger")
             else:
@@ -196,23 +172,6 @@ def primeiro_acesso():
                 return redirect(url_for("views.login"))
 
             professor.senha_prof = generate_password_hash(senha_usuario)
-            db.session.commit()
-
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
-        
-        elif tipo_usuario == 3:
-            administrador = Administradores.query.filter_by(login_adm=login_usuario).first()
-
-            if not administrador:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
-                return redirect(url_for("views.login"))
-            
-            administrador.senha_adm = generate_password_hash(senha_usuario)
             db.session.commit()
 
             session.pop("session_tipo_usuario", None)

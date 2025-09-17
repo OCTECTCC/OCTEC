@@ -14,8 +14,8 @@ class Etecs(db.Model):
     id_etec = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo_etec = db.Column(db.String(3), unique=True, nullable=False)
     nome_etec = db.Column(db.String(128), nullable=False)
-    id_cidade_etec = db.Column(db.Integer, db.ForeignKey("cidades.id_cidade"), nullable=False)
 
+    id_cidade_etec = db.Column(db.Integer, db.ForeignKey("cidades.id_cidade"), nullable=False)
     cidade_etec = db.relationship("Cidades", back_populates="etecs_cidade")
     
     alunos_etec = db.relationship("Alunos", back_populates="etec_aluno")
@@ -28,7 +28,7 @@ class Cursos(db.Model):
     sigla_curso = db.Column(db.String(10), nullable=False)
     descricao_curso = db.Column(db.String(128), nullable=False)
     turno_curso = db.Column(db.String(128), nullable=False)
-    qtd_modulos_curso = db.Column(db.Numeric(1), nullable=False)
+    qtd_modulos_curso = db.Column(db.Integer, nullable=False)
 
     alunos_curso = db.relationship("Alunos", back_populates="curso_aluno")
     aulas_curso = db.relationship("Aulas", back_populates="curso_aula")
@@ -45,6 +45,13 @@ class Cargos(db.Model):
     id_cargo = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao_cargo = db.Column(db.String(128), nullable=False)
 
+    alunos_cargo = db.relationship("Alunos", back_populates="cargo_usuario")
+    professores_cargo = db.relationship("Professores", back_populates="cargo_usuario")
+
+    leitores_canais_cargo = db.relationship("Canais", back_populates="cargo_leitor_canal", foreign_keys="[Canais.id_cargo_leitor_canal]")
+    emissores_canais_cargo = db.relationship("Canais", back_populates="cargo_emissor_canal", foreign_keys="[Canais.id_cargo_emissor_canal]")
+    moderadores_canais_cargo = db.relationship("Canais", back_populates="cargo_moderador_canal", foreign_keys="[Canais.id_cargo_moderador_canal]")
+
 class Alunos(db.Model, UserMixin):
     __tablename__ = "alunos"
     id_aluno = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -52,17 +59,22 @@ class Alunos(db.Model, UserMixin):
     senha_aluno = db.Column(db.String(128), nullable=False)
     cpf_aluno = db.Column(db.String(11), nullable=False)
     nome_aluno = db.Column(db.String(128), nullable=False)
-    modulo_aluno = db.Column(db.Numeric(1), nullable=False)
+    modulo_aluno = db.Column(db.Integer, nullable=False)
     turma_aluno = db.Column(db.String(1), nullable=False)
     situacao_aluno = db.Column(db.String(128), nullable=False)
-    ano_origem_aluno = db.Column(db.Numeric(4), nullable=False)
-    id_curso_aluno = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
-    id_etec_aluno = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    ano_origem_aluno = db.Column(db.Integer, nullable=False)
+    semestre_origem_aluno = db.Column(db.Integer, nullable=False)
 
+    id_curso_aluno = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     curso_aluno = db.relationship("Cursos", back_populates="alunos_curso")
+
+    id_etec_aluno = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_aluno = db.relationship("Etecs", back_populates="alunos_etec")
 
-    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, id_curso_aluno, id_etec_aluno, senha_texto=None):
+    id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_usuario = db.relationship("Cargos", back_populates="alunos_cargo")
+
+    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
         self.cpf_aluno = cpf_aluno
         self.nome_aluno = nome_aluno
@@ -70,6 +82,8 @@ class Alunos(db.Model, UserMixin):
         self.turma_aluno = turma_aluno
         self.situacao_aluno = situacao_aluno
         self.ano_origem_aluno = ano_origem_aluno
+        self.semestre_origem_aluno = semestre_origem_aluno
+        self.id_cargo_usuario = id_cargo_usuario
         self.id_curso_aluno = id_curso_aluno
         self.id_etec_aluno = id_etec_aluno
 
@@ -89,16 +103,20 @@ class Professores(db.Model, UserMixin):
     senha_prof = db.Column(db.String(128), nullable=False)
     cpf_prof = db.Column(db.String(11), nullable=False)
     nome_prof = db.Column(db.String(128), nullable=False)
-    id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
 
+    id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_prof = db.relationship("Etecs", back_populates="professores_etec")
+
+    id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_usuario = db.relationship("Cargos", back_populates="professores_cargo")
 
     aulas_prof = db.relationship("Aulas", back_populates="professor_aula")
 
-    def __init__(self, login_prof, cpf_prof, nome_prof, id_etec_prof, senha_texto=None):
+    def __init__(self, login_prof, cpf_prof, nome_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
         self.cpf_prof = cpf_prof
         self.nome_prof = nome_prof
+        self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_prof = id_etec_prof
         if senha_texto:
             self.senha_prof = generate_password_hash(senha_texto)
@@ -109,49 +127,36 @@ class Professores(db.Model, UserMixin):
     def id(self):
         return self.id_prof
 
-class Administradores(db.Model, UserMixin):
-    __tablename__ = "administradores"
-    id_adm = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    login_adm = db.Column(db.String(11), nullable=False)
-    senha_adm = db.Column(db.String(128), nullable=False)
-    cpf_adm = db.Column(db.String(11), nullable=False)
-    nome_adm = db.Column(db.String(128), nullable=False)
-    id_etec_adm = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
-
-    def __init__(self, login_adm, cpf_adm, nome_adm, id_etec_adm, senha_texto=None):
-        self.login_adm = login_adm
-        self.cpf_adm = cpf_adm
-        self.nome_adm = nome_adm
-        self.id_etec_adm = id_etec_adm
-        if senha_texto:
-            self.senha_adm = generate_password_hash(senha_texto)
-        else:
-            self.senha_adm = generate_password_hash(cpf_adm)
-
-    @property
-    def id(self):
-        return self.id_adm
-
 class Aulas(db.Model):
     __tablename__ = "aulas"
     id_aula = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    modulo_aula = db.Column(db.Numeric(1), nullable=False)
+    modulo_aula = db.Column(db.Integer, nullable=False)
     turma_aula = db.Column(db.String(2), nullable=False)
-    ano_aula = db.Column(db.Numeric(4), nullable=False)
-    semestre_aula = db.Column(db.Numeric(1), nullable=False)
-    id_curso_aula = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
-    id_materia_aula = db.Column(db.Integer, db.ForeignKey("materias.id_materia"), nullable=False)
-    id_professor_aula = db.Column(db.Integer, db.ForeignKey("professores.id_prof"), nullable=False)
-    id_etec_aula = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    ano_aula = db.Column(db.Integer, nullable=False)
+    semestre_aula = db.Column(db.Integer, nullable=False)
 
+    id_curso_aula = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     curso_aula = db.relationship("Cursos", back_populates="aulas_curso")
+
+    id_materia_aula = db.Column(db.Integer, db.ForeignKey("materias.id_materia"), nullable=False)
     materia_aula = db.relationship("Materias", back_populates="aulas_materia")
+
+    id_professor_aula = db.Column(db.Integer, db.ForeignKey("professores.id_prof"), nullable=False)
     professor_aula = db.relationship("Professores", back_populates="aulas_prof")
+
+    id_etec_aula = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_aula = db.relationship("Etecs", back_populates="aulas_etec")
 
 class Canais(db.Model):
     __tablename__ = "canais"
     id_canal = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao_canal = db.Column(db.String(128), nullable=False)
-    id_cargo_editor_canal = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+
     id_cargo_leitor_canal = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_leitor_canal = db.relationship("Cargos", back_populates="leitores_canais_cargo", foreign_keys=[id_cargo_leitor_canal])
+
+    id_cargo_emissor_canal = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_emissor_canal = db.relationship("Cargos", back_populates="emissores_canais_cargo", foreign_keys=[id_cargo_emissor_canal])
+
+    id_cargo_moderador_canal = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_moderador_canal = db.relationship("Cargos", back_populates="moderadores_canais_cargo", foreign_keys=[id_cargo_moderador_canal])
