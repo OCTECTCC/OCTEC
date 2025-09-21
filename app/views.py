@@ -24,9 +24,127 @@ def index():
 
         tipo_usuario = current_user.id_cargo_usuario
 
-        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario)
+        if tipo_usuario == 1:
+            if current_user.situacao_aluno == "CURSANDO":
+                filtro_aulas = [
+                    Aulas.modulo_aula == current_user.modulo_aluno,
+                    Aulas.turma_aula.like(f"%{current_user.turma_aluno}%"),
+                    Aulas.id_curso_aula == current_user.id_curso_aluno,
+                    Aulas.id_etec_aula == current_user.id_etec_aluno
+                ]                
 
-    return render_template("index.html")
+                if current_user.curso_aluno.turno_curso in ("Manhã", "Integral", "Tarde"):
+                    if current_user.modulo_aluno in (1, 2):
+                        ano_aula = current_user.ano_origem_aluno
+                    elif current_user.modulo_aluno in (3, 4):
+                        ano_aula = current_user.ano_origem_aluno + 1
+                    elif current_user.modulo_aluno in (5, 6):
+                        ano_aula = current_user.ano_origem_aluno + 2
+                elif current_user.curso_aluno.turno_curso == "Noturno":
+                    if current_user.semestre_origem_aluno == 1:
+                        if current_user.modulo_aluno in (1, 2):
+                            ano_aula = current_user.ano_origem_aluno
+                        elif current_user.modulo_aluno in (3, 4):
+                            ano_aula = current_user.ano_origem_aluno + 1
+                    elif current_user.semestre_origem_aluno == 2:
+                        if current_user.modulo_aluno == 1:
+                            ano_aula = current_user.ano_origem_aluno
+                        elif current_user.modulo_aluno in (2, 3):
+                            ano_aula = current_user.ano_origem_aluno + 1
+                        elif current_user.modulo_aluno in (2, 3):
+                            ano_aula = current_user.ano_origem_aluno + 2
+
+                filtro_aulas.append(Aulas.ano_aula == ano_aula)
+                aulas = Aulas.query.filter(*filtro_aulas).all()
+
+        elif tipo_usuario == 2:
+            aulas = Aulas.query.filter(
+                Aulas.id_professor_aula == current_user.id_prof,
+                Aulas.id_etec_aula == current_user.id_etec_prof
+            ).all()
+
+        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas)
+        """
+        if tipo_usuario == 1:
+            if current_user.situacao_aluno == "CURSANDO":
+                if current_user.curso_aluno.turno_curso == "Manhã" or current_user.curso_aluno.turno_curso == "Integral" or current_user.curso_aluno.turno_curso == "Tarde":
+                    if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2:
+                        aulas = Aulas.query.filter(
+                            Aulas.modulo_aula == current_user.modulo_aluno,
+                            Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                            Aulas.ano_aula == current_user.ano_origem_aluno,
+                            Aulas.id_curso_aula == current_user.id_curso_aluno,
+                            Aulas.id_etec_aula == current_user.id_etec_aluno
+                        ).all()
+                    elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4:
+                        aulas = Aulas.query.filter(
+                            Aulas.modulo_aula == current_user.modulo_aluno,
+                            Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                            Aulas.ano_aula == current_user.ano_origem_aluno + 1,
+                            Aulas.id_curso_aula == current_user.id_curso_aluno,
+                            Aulas.id_etec_aula == current_user.id_etec_aluno
+                        ).all()
+                    elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6:
+                        aulas = Aulas.query.filter(
+                            Aulas.modulo_aula == current_user.modulo_aluno,
+                            Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                            Aulas.ano_aula == current_user.ano_origem_aluno + 2,
+                            Aulas.id_curso_aula == current_user.id_curso_aluno,
+                            Aulas.id_etec_aula == current_user.id_etec_aluno
+                        ).all()
+                elif current_user.curso_aluno.turno_curso == "Noturno":
+                    if current_user.semestre_origem_aluno == 1:
+                        if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2:
+                            aulas = Aulas.query.filter(
+                                Aulas.modulo_aula == current_user.modulo_aluno,
+                                Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                                Aulas.ano_aula == current_user.ano_origem_aluno,
+                                Aulas.id_curso_aula == current_user.id_curso_aluno,
+                                Aulas.id_etec_aula == current_user.id_etec_aluno
+                            ).all()
+                        elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4:
+                            aulas = Aulas.query.filter(
+                                Aulas.modulo_aula == current_user.modulo_aluno,
+                                Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                                Aulas.ano_aula == current_user.ano_origem_aluno + 1,
+                                Aulas.id_curso_aula == current_user.id_curso_aluno,
+                                Aulas.id_etec_aula == current_user.id_etec_aluno
+                            ).all()
+                    elif current_user.semestre_origem_aluno == 2:
+                        if current_user.modulo_aluno == 1:
+                            aulas = Aulas.query.filter(
+                                Aulas.modulo_aula == current_user.modulo_aluno,
+                                Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                                Aulas.ano_aula == current_user.ano_origem_aluno,
+                                Aulas.id_curso_aula == current_user.id_curso_aluno,
+                                Aulas.id_etec_aula == current_user.id_etec_aluno
+                            ).all()
+                        elif current_user.modulo_aluno == 2 or current_user.modulo_aluno == 3:
+                            aulas = Aulas.query.filter(
+                                Aulas.modulo_aula == current_user.modulo_aluno,
+                                Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                                Aulas.ano_aula == current_user.ano_origem_aluno + 1,
+                                Aulas.id_curso_aula == current_user.id_curso_aluno,
+                                Aulas.id_etec_aula == current_user.id_etec_aluno
+                            ).all()
+                        elif current_user.modulo_aluno == 4:
+                            aulas = Aulas.query.filter(
+                                Aulas.modulo_aula == current_user.modulo_aluno,
+                                Aulas.turma_aula.like(f"%{current_user.turma_aluno[0]}%"),
+                                Aulas.ano_aula == current_user.ano_origem_aluno + 2,
+                                Aulas.id_curso_aula == current_user.id_curso_aluno,
+                                Aulas.id_etec_aula == current_user.id_etec_aluno
+                            ).all()
+                return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas)
+        elif tipo_usuario == 2:
+            aulas = Aulas.query.filter(
+                Aulas.id_professor_aula == current_user.id_prof,
+                Aulas.id_etec_aula == current_user.id_etec_prof
+            ).all()
+            return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas)
+        """
+    else:  
+        return render_template("index.html")
 
 @views.route("/login", methods=["GET","POST"])
 def login():

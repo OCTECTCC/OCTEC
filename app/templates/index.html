@@ -42,7 +42,7 @@
                         <div class="flex-grow-1 row g-0 h-100">
                             <aside class="d-flex flex-column border-end col-12 col-md-3 text-bg-primary">
                                 <div class="d-flex align-items-center justify-content-between p-3">
-                                    <h6 class="m-0">Canais</h6>
+                                    <h6 class="m-0">Geral</h6>
                                 </div>
                                 <div class="list-group list-group-flush canais">
                                     {% for canal in canais %}
@@ -56,17 +56,48 @@
                                             </a>
                                         {% endif %}
                                     {% endfor %}
-                                    {% if tipo_usuario == 1 %}
-                                        {% for aula in aulas %}                                    
-                                            <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}" style="cursor: pointer">
-                                                <div class="d-flex justify-content-between w-100">
-                                                    <h6 class="mb-0 small">{{ aula.descricao_aula }}</h6>
-                                                    <small class="text-muted"></small>
-                                                </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-3">
+                                    <h6 class="m-0">
+                                        Aulas
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            {% if current_user.curso_aluno.turno_curso == "Manhã" or current_user.curso_aluno.turno_curso == "Integral" or current_user.curso_aluno.turno_curso == "Tarde" %}
+                                                {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
+                                                    1º
+                                                {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
+                                                    2º
+                                                {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
+                                                    3º
+                                                {% endif %}
+                                            {% elif current_user.curso_aluno.turno_curso == "Noturno" %}
+                                                {{ current_user.modulo_aluno }}º MÓD.
+                                            {% endif %}
+                                            {{ current_user.curso_aluno.sigla_curso }}
+                                            {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
+                                                {{ current_user.ano_origem_aluno }}
+                                            {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
+                                                {{ current_user.ano_origem_aluno + 1 }}
+                                            {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
+                                                {{ current_user.ano_origem_aluno + 2 }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </h6>
+                                </div>
+                                <div class="list-group list-group-flush canais">
+                                    {% for aula in aulas %}    
+                                        <a class="text-bg-primary list-group-item list-group-item-action" href="{{ url_for('views.index') }}" style="cursor: pointer">
+                                            <div class="d-flex justify-content-between w-100">
+                                                <h6 class="mb-0 small">
+                                                    {{ aula.materia_aula.descricao_materia }}
+                                                    {% if aula.turma_aula != "AB" %}
+                                                        T{{ aula.turma_aula }}
+                                                    {% endif %}
+                                                </h6>
                                                 <small class="text-muted"></small>
-                                            </a>
-                                        {% endfor %}
-                                    {% endif %}
+                                            </div>
+                                            <small class="text-muted"></small>
+                                        </a>
+                                    {% endfor %}
                                 </div>
                             </aside>
                             <section class="d-flex flex-column col-12 col-md-9">
@@ -110,7 +141,7 @@
         {% endblock %}
         {% with mensagens = get_flashed_messages(with_categories=true) %}
             {% if mensagens %}
-                <div class="position-fixed bottom-0 end-0 p-3">
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2">
                     {% for categoria, mensagem in mensagens %}
                         {% if categoria == 'success' %}
                             {% set cor = 'success' %}
