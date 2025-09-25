@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!data || data.length === 0) {
                 select_etec.innerHTML = '<option value="" selected disabled>Sem ETECs nesta cidade</option>'
-                return;
+                return
             }
 
             select_etec.innerHTML = '<option value="" selected disabled>Selecione sua ETEC</option>'
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 opcao.textContent = `${etec.nome_etec} (${etec.codigo_etec})`
                 opcao.dataset.id_etec = etec.id_etec
                 select_etec.appendChild(opcao)
-            });
+            })
         }
         catch (err) {
             console.error(err)
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         select_cidade.addEventListener('change', function () {
             const id_cidade = select_cidade.value
             if (id_cidade) etecs_por_cidade(id_cidade)
-        });
+        })
     }
 
     if (button_etec) {
@@ -52,20 +52,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!etec_escolhida) {
                 select_etec.focus()
-                return;
+                return
             }
 
-            input_etec.value = etec_escolhida;
+            input_etec.value = etec_escolhida
 
             const modal = instanciar_modal()
             modal.hide()
-        });
+        })
     }
 
     if (div_modal_etec) {
         div_modal_etec.addEventListener('show.bs.modal', function () {
             select_etec.innerHTML = '<option value="" selected disabled>Selecione sua ETEC</option>'
             select_cidade.selectedIndex = 0
-        });
+        })
     }
-});
+})

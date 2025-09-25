@@ -13,9 +13,9 @@
                 <div class="mb-3">
                     <label class="form-label" for="select_usuario">Entrar como</label>
                     <select id="select_usuario" name="tipo_usuario" class="form-select" required tabindex="1">
-                        <option value="" selected disabled>Escolha uma opção</option>
+                        <option value="" disabled>Escolha uma opção</option>
                         {% for cargo in cargos %}
-                            <option value="{{ cargo.id_cargo }}">{{ cargo.descricao_cargo }}</option>
+                            <option value="{{ cargo.id_cargo }}" {% if cargo.id_cargo == 1 %}selected{% endif %}>{{ cargo.descricao_cargo }}</option>
                         {% endfor %}
                     </select>
                 </div>
