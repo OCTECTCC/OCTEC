@@ -1,0 +1,176 @@
+{% extends "index.html" %}
+{% block title %}Perfil{% endblock %}
+{% block body %}
+    <main class="d-flex flex-column container-fluid vh-100 bg-primary">
+        <div class="flex-grow-1 row g-0 overflow-hidden">
+            <aside class="d-flex flex-column col-12 col-md-2 bg-light">
+                <div class="d-flex justify-content-between align-items-center border-bottom p-3">
+                    <h6 class="mb-0">Perfil</h6>
+                    <a href="{{ url_for('views.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                </div>
+                <nav class="flex-grow-1 list-group list-group-flush overflow-auto">
+                    <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action active">Visão geral</a>
+                    <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Editar perfil</a>
+                    <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Segurança</a>
+                    <a href="{{ url_for('views.logout') }}" class="list-group-item list-group-item-action text-danger border-bottom">Sair</a>
+                </nav>
+            </aside>
+            <section class="d-flex flex-column col-12 col-md-10">
+                <div class="p-4 overflow-auto">
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3 bg-secondary text-white" style="width:120px;height:120px;font-size:32px;">
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            {{ current_user.nome_aluno[0]|upper }}
+                                        {% elif current_user.id_cargo_usuario == 2 %}
+                                            {{ current_user.nome_prof[0]|upper }}
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="card-title mb-1">
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            {{ current_user.nome_aluno }}
+                                        {% elif current_user.id_cargo_usuario == 2 %}
+                                            {{ current_user.nome_prof }}
+                                        {% endif %}
+                                    </h5>
+                                    <p class="text-muted small mb-2">
+                                        {{ current_user.cargo_usuario.descricao_cargo }}
+                                    </p>
+                                    <p class="text-muted small mb-3">
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            {{ current_user.etec_aluno.nome_etec }}
+                                        {% elif current_user.id_cargo_usuario == 2 %}
+                                            {{ current_user.etec_prof.nome_etec }}
+                                        {% endif %}
+                                    </p>
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('views.perfil') }}" class="btn btn-outline-primary btn-sm">Editar perfil</a>
+                                        <a href="{{ url_for('views.perfil') }}" class="btn btn-outline-secondary btn-sm">Alterar senha</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-0">Dados do seu perfil</h5>
+                                        </div>
+                                    </div>
+                                    <div class="row gy-3">
+                                        <div class="col-12 col-md-3">
+                                            <label class="form-label small text-muted">Nome</label>
+                                            <div class="fw-semibold">
+                                                {% if current_user.id_cargo_usuario == 1 %}
+                                                    {{ current_user.nome_aluno }}
+                                                {% elif current_user.id_cargo_usuario == 2 %}
+                                                    {{ current_user.nome_prof }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <label class="form-label small text-muted">
+                                                {% if current_user.id_cargo_usuario == 1 %}
+                                                    RM
+                                                {% elif current_user.id_cargo_usuario == 2 %}
+                                                    Login
+                                                {% endif %}
+                                            </label>
+                                            <div class="fw-semibold">
+                                                {% if current_user.id_cargo_usuario == 1 %}
+                                                    {{ current_user.rm_aluno }}
+                                                {% elif current_user.id_cargo_usuario == 2 %}
+                                                    {{ current_user.login_prof }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <label class="form-label small text-muted">CPF</label>
+                                            <div class="fw-semibold">
+                                                {% if current_user.id_cargo_usuario == 1 %}
+                                                    {{ current_user.cpf_aluno }}
+                                                {% elif current_user.id_cargo_usuario == 2 %}
+                                                    {{ current_user.cpf_prof }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-muted">Status</label>
+                                                <div class="fw-semibold">
+                                                    {{ current_user.situacao_aluno }}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        <div class="col-12 col-md-12">
+                                            <label class="form-label small text-muted">ETEC</label>
+                                            <div class="fw-semibold">
+                                                {% if current_user.id_cargo_usuario == 1 %}
+                                                    {{ current_user.etec_aluno.nome_etec }}
+                                                {% elif current_user.id_cargo_usuario == 2 %}
+                                                    {{ current_user.etec_prof.nome_etec }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            <div class="col-12 col-md-12">
+                                                <label class="form-label small text-muted">Curso</label>
+                                                <div class="fw-semibold">
+                                                    {{ current_user.curso_aluno.descricao_curso }}
+                                                </div>
+                                            </div>
+                                            {% if current_user.curso_aluno.turno_curso == "Noturno" %}
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small text-muted">Módulo</label>
+                                                    <div class="fw-semibold">
+                                                        {{ current_user.modulo_aluno }}º
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="col-12 col-md-3">
+                                                    <label class="form-label small text-muted">Série</label>
+                                                    <div class="fw-semibold">
+                                                        {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
+                                                            1ª
+                                                        {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
+                                                            2ª
+                                                        {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
+                                                            3ª
+                                                        {% endif %}                
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-muted">Turma</label>
+                                                <div class="fw-semibold">
+                                                    {{ current_user.turma_aluno }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-muted">Ano de origem</label>
+                                                <div class="fw-semibold">
+                                                    {{ current_user.ano_origem_aluno }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <label class="form-label small text-muted">Semestre de origem</label>
+                                                <div class="fw-semibold">
+                                                    {{ current_user.semestre_origem_aluno }}º
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+{% endblock %}

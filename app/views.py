@@ -163,6 +163,11 @@ def logout():
     session.clear()
     return redirect(url_for("views.login"))
 
+@views.route("/perfil")
+@login_required
+def perfil():
+    return render_template("perfil.html")
+
 @views.route("/primeiro_acesso", methods=["GET","POST"])
 def primeiro_acesso():
     if current_user.is_authenticated:
