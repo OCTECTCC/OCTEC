@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
         {% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">{% endblock %}
     </head>
-    <body class="d-flex flex-column min-vh-100">
+    <body class="d-flex flex-column min-vh-100 overflow-hidden">
         {% block body %}
             {% if current_user.is_authenticated %}
                 <header class="bg-white border-bottom header">
