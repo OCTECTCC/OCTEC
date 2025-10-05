@@ -1,32 +1,41 @@
 {% extends "index.html" %}
 {% block title %}Primeiro acesso{% endblock %}
-{% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/primeiro_acesso.css') }}">{% endblock %}
 {% block body %}
-    <a class="icone_voltar" href="{{ url_for('views.login') }}">
-        <i class="bi bi-arrow-left-circle-fill"></i>
-    </a>
-    <div class="d-flex container-fluid" style="min-height: 90vh">
-        <div class="d-none d-md-block col-md-6 logo"></div>
-        <div class="d-flex align-items-center justify-content-center col-md-6">
-            <form class="w-75" method="POST" autocomplete="off">
-                <h2 class="mb-4">Primeiro acesso</h2>
-                <p style="text-align: justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
-                <div class="mb-3">
-                    <label class="form-label" for="input_login">Login</label>
-                    <input id="input_login" class="form-control" type="text" value="{{ login_usuario }}" required readonly tabindex="-1">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="input_senha">Nova senha</label>
-                    <input id="input_senha" name="senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite sua nova senha" required tabindex="1">
-                </div>
-                <div class="mb-3">
-                    <label for="input_confirmar_senha" class="form-label">Confirmar senha</label>
-                    <input id="input_confirmar_senha" name="confirmar_senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite novamente sua nova senha" required tabindex="2">
-                </div>
-                <button class="btn btn-primary w-100" type="submit">Definir senha</button>
-            </form>
+    <main class="d-flex flex-column flex-grow-1 container-fluid bg-light p-3">
+        <div class="container-fluid pb-3">
+            <a class="btn btn-sm btn-outline-dark" href="{{ url_for('views.login') }}">
+                <i class="bi bi-arrow-left"></i>
+            </a>
         </div>
-    </div>
+        <div class="flex-grow-1 justify-content-evenly row container-fluid g-0">
+            <div class="d-flex flex-column justify-content-center align-items-center col-12 col-md-5">
+                <img class="col-10 col-md-12 col-lg-11" src="{{ url_for('static', filename='img/logo.png') }}">
+            </div>
+            <div class="d-flex justify-content-center align-items-center col-12 col-md-6">
+                <div class="border border-1 border-dark rounded col-10 col-lg-7 p-3 text-bg-dark">
+                    <form method="POST" autocomplete="off">
+                        <h2 class="text-center">Primeiro acesso</h2>
+                        <div class="mb-3">
+                            <p style="text-align: justify">Identificamos que este é seu primeiro acesso ao sistema. Por questões de segurança, você deve criar uma nova senha (mínimo de 6 caracteres, incluindo letras e números).</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="input_login">Login</label>
+                            <input id="input_login" class="form-control" type="text" value="{{ login_usuario }}" required readonly tabindex="-1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="input_senha">Nova senha</label>
+                            <input id="input_senha" name="senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite sua nova senha" required tabindex="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="input_confirmar_senha" class="form-label">Confirmar senha</label>
+                            <input id="input_confirmar_senha" name="confirmar_senha_usuario" class="form-control" type="password" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" placeholder="Digite novamente sua nova senha" required tabindex="2">
+                        </div>
+                        <button class="btn btn-danger w-100" type="submit">Definir senha</button>
+                    </form>
+                </div>
+             </div>
+        </div>
+    </main>
     <footer class="text-center text-bg-dark py-3 mt-auto">
         &copy; 2025 - OCTEC
     </footer>
