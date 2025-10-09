@@ -9,122 +9,91 @@
         <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_V2.png') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-        {% block style %}<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">{% endblock %}
     </head>
-    <body class="d-flex flex-column min-vh-100 overflow-md-hidden">
+    <body class="d-flex flex-column min-vh-100 text-bg-light overflow-md-hidden">
         {% block body %}
             {% if current_user.is_authenticated %}
-                <header class="bg-light border-bottom header">
-                    <div class="container-fluid h-100">
-                        <div class="d-flex justify-content-between align-items-center h-100">
-                            <div class="d-flex align-items-center">
-                                <a class="d-flex align-items-center text-decoration-none" href="{{ url_for('views.index') }}">
-                                    <img src="{{ url_for('static', filename='img/logo_V2.png') }}" alt="OCTEC" style="height: 40px">
-                                    <span class="d-none d-sm-inline ms-2 fw-semibold">OCTEC</span>
-                                </a>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('views.perfil') }}" title="Perfil">
-                                    <i class="bi bi-person-circle"></i>
-                                </a>
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('views.index') }}" title="Configurações">
-                                    <i class="bi bi-gear"></i>
-                                </a>
-                                <a class="btn btn-sm btn-outline-danger" href="{{ url_for('views.logout') }}" title="Sair">
-                                    <i class="bi bi-box-arrow-right"></i>
-                                </a>
-                            </div>
-                        </div>
+                <header class="d-flex container-fluid border-bottom py-2">
+                    <div class="d-flex align-items-center p-2">
+                        <img src="{{ url_for('static', filename='img/logo_V2.png') }}" style="height: 40px">
+                        <span class="ms-2 fw-semibold">OCTEC</span>
+                    </div>
+                    <div class="d-flex justify-content-end align-items-center container-fluid gap-2">
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('views.perfil') }}" title="Perfil">
+                            <i class="bi bi-person-circle"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('views.index') }}" title="Configurações">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" href="{{ url_for('views.logout') }}" title="Sair">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
                     </div>
                 </header>
-                <main class="d-flex flex-column flex-grow-1">
-                    <div class="d-flex flex-column flex-grow-1 container-fluid h-100">
-                        <div class="flex-grow-1 row g-0 h-100">
-                            <aside class="d-flex flex-column border-end col-12 col-md-3 text-bg-primary">
-                                <div class="d-flex align-items-center justify-content-between p-3">
-                                    <h6 class="m-0">Geral</h6>
-                                </div>
-                                <div class="list-group list-group-flush canais">
-                                    {% for canal in canais %}
-                                        {% if tipo_usuario >= canal.id_cargo_leitor_canal %}
-                                            <a class="list-group-item list-group-item-action text-bg-primary" href="{{ url_for('views.index') }}" style="cursor: pointer">
-                                                <div class="d-flex justify-content-between w-100">
-                                                    <h6 class="mb-0 small">{{ canal.descricao_canal }}</h6>
-                                                    <small class="text-muted"></small>
-                                                </div>
-                                                <small class="text-muted"></small>
-                                            </a>
+                <main class="d-flex flex-grow-1 bg-dark">
+                    <aside class="d-flex flex-column flex-grow-1 col-12 col-md-3 text-bg-light">
+                        <div class="d-flex align-items-center p-3 text-bg-danger">
+                            <h6 class="mb-0">Geral</h6>
+                        </div>
+                        <nav class="list-group list-group-flush">
+                            {% for canal in canais %}
+                                {% if tipo_usuario >= canal.id_cargo_leitor_canal %}
+                                    <a class="list-group-item list-group-item-action text-bg-light" href="{{ url_for('views.index') }}">
+                                        <h6 class="mb-0 py-1">{{ canal.descricao_canal }}</h6>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </nav>
+                        <div class="d-flex align-items-center p-3 text-bg-danger">
+                            <h6 class="mb-0">
+                                Aulas
+                                {% if current_user.id_cargo_usuario == 1 %}
+                                    {% if current_user.curso_aluno.turno_curso == "Manhã" or current_user.curso_aluno.turno_curso == "Integral" or current_user.curso_aluno.turno_curso == "Tarde" %}
+                                        {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
+                                            1º
+                                        {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
+                                            2º
+                                        {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
+                                            3º
                                         {% endif %}
-                                    {% endfor %}
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-3">
-                                    <h6 class="m-0">
-                                        Aulas
-                                        {% if current_user.id_cargo_usuario == 1 %}
-                                            {% if current_user.curso_aluno.turno_curso == "Manhã" or current_user.curso_aluno.turno_curso == "Integral" or current_user.curso_aluno.turno_curso == "Tarde" %}
-                                                {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
-                                                    1º
-                                                {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
-                                                    2º
-                                                {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
-                                                    3º
-                                                {% endif %}
-                                            {% elif current_user.curso_aluno.turno_curso == "Noturno" %}
-                                                {{ current_user.modulo_aluno }}º MÓD.
-                                            {% endif %}
-                                            {{ current_user.curso_aluno.sigla_curso }}
-                                            {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
-                                                {{ current_user.ano_origem_aluno }}
-                                            {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
-                                                {{ current_user.ano_origem_aluno + 1 }}
-                                            {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
-                                                {{ current_user.ano_origem_aluno + 2 }}
-                                            {% endif %}
+                                    {% elif current_user.curso_aluno.turno_curso == "Noturno" %}
+                                        {{ current_user.modulo_aluno }}º MÓD.
+                                    {% endif %}
+                                    {{ current_user.curso_aluno.sigla_curso }}
+                                    {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
+                                        {{ current_user.ano_origem_aluno }}
+                                    {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
+                                        {{ current_user.ano_origem_aluno + 1 }}
+                                    {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
+                                        {{ current_user.ano_origem_aluno + 2 }}
+                                    {% endif %}
+                                {% endif %}
+                            </h6>
+                        </div>
+                        <nav class="list-group list-group-flush">
+                            {% for aula in aulas %}    
+                                <a class="list-group-item list-group-item-action text-bg-light" href="{{ url_for('views.index') }}">
+                                    <h6 class="mb-0 py-1">
+                                        {{ aula.materia_aula.descricao_materia }}
+                                        {% if aula.turma_aula != "AB" %}
+                                            T{{ aula.turma_aula }}
                                         {% endif %}
                                     </h6>
+                                </a>
+                            {% endfor %}
+                        </nav>
+                    </aside>
+                    <section class="d-flex flex-column justify-content-end col-12 col-md-9 bg-secondary">
+                        <div class="bg-dark p-3">
+                            <form class="d-flex flex-grow-1 gap-2">
+                                <input type="hidden" value="{{ id_canal or '' }}">
+                                <textarea class="form-control p-2" rows="1" placeholder="Escreva uma mensagem..." required style="resize: none"></textarea>
+                                <div class="d-flex align-items-center">
+                                    <button class="btn btn-danger" type="submit"><i class="bi bi-send"></i></button>
                                 </div>
-                                <div class="list-group list-group-flush canais">
-                                    {% for aula in aulas %}    
-                                        <a class="text-bg-primary list-group-item list-group-item-action" href="{{ url_for('views.index') }}" style="cursor: pointer">
-                                            <div class="d-flex justify-content-between w-100">
-                                                <h6 class="mb-0 small">
-                                                    {{ aula.materia_aula.descricao_materia }}
-                                                    {% if aula.turma_aula != "AB" %}
-                                                        T{{ aula.turma_aula }}
-                                                    {% endif %}
-                                                </h6>
-                                                <small class="text-muted"></small>
-                                            </div>
-                                            <small class="text-muted"></small>
-                                        </a>
-                                    {% endfor %}
-                                </div>
-                            </aside>
-                            <section class="d-flex flex-column col-12 col-md-9">
-                                <div class="d-flex flex-column h-100 chat">
-                                    <div class="border-bottom px-3 py-2 bg-white">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <h6 class="mb-0"></h6>
-                                                <small class="text-muted"></small>
-                                            </div>
-                                            <div class="d-none d-md-block text-muted small"></div>
-                                        </div>
-                                    </div>
-                                    <div class="mensagens"></div>
-                                    <div class="input_mensagem">
-                                        <form class="d-flex gap-2">
-                                            <input type="hidden" value="{{ id_canal or '' }}">
-                                            <textarea name="mensagem" class="form-control" rows="1" placeholder="Escreva uma mensagem..." required style="resize: none"></textarea>
-                                            <div class="d-flex align-items-center">
-                                                <button class="btn btn-primary" type="submit" title="Enviar"><i class="bi bi-send"></i></button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </section>
+                            </form>
                         </div>
-                    </div>
+                    </section>
                 </main>
             {% else %}
                 <main class="d-flex flex-column flex-grow-1 justify-content-center align-items-center container-fluid bg-light p-3">
