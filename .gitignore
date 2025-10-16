@@ -1,6 +1,7 @@
 # Ambiente virtual
 .venv/
 .env
+.vscode/
 
 # Bytecode Python
 *.pyc

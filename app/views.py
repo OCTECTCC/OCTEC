@@ -1,6 +1,7 @@
 from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
+from collections import defaultdict
 from .models import *
 from . import login_manager, db
 
@@ -56,6 +57,7 @@ def index():
 
                 filtro_aulas.append(Aulas.ano_aula == ano_aula)
                 aulas = Aulas.query.filter(*filtro_aulas).all()
+                aulas_por_sala = None
 
         elif tipo_usuario == 2:
             aulas = Aulas.query.filter(
@@ -63,7 +65,25 @@ def index():
                 Aulas.id_etec_aula == current_user.id_etec_prof
             ).all()
 
-        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas)
+            grupos_aulas = defaultdict(list)
+
+            for aula in aulas:
+                if aula.curso_aula.turno_curso in ("Manhã", "Integral", "Tarde"):
+                    if aula.modulo_aula in (1,2):
+                        serie_modulo = "1º"
+                    elif aula.modulo_aula in (3,4):
+                        serie_modulo = "2º"
+                    elif aula.modulo_aula in (5,6):
+                        serie_modulo = "3º"
+                elif aula.curso_aula.turno_curso == "Noturno":
+                    serie_modulo = f"{aula.modulo_aula}º MÓD."
+                
+                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
+                grupos_aulas[descricao_aula].append(aula)
+
+            aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
+
+        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas, aulas_por_sala=aulas_por_sala)
         
     else:  
         return render_template("index.html")
