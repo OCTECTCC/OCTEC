@@ -63,7 +63,7 @@
                                             <div class="accordion-header">
                                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_aulas">
                                                     Aulas
-                                                    {% if current_user.curso_aluno.turno_curso == "Manhã" or current_user.curso_aluno.turno_curso == "Integral" or current_user.curso_aluno.turno_curso == "Tarde" %}
+                                                    {% if current_user.curso_aluno.ensino_medio_integrado_curso == True %}
                                                         {% if current_user.modulo_aluno == 1 or current_user.modulo_aluno == 2 %}
                                                             1º
                                                         {% elif current_user.modulo_aluno == 3 or current_user.modulo_aluno == 4 %}
@@ -71,7 +71,7 @@
                                                         {% elif current_user.modulo_aluno == 5 or current_user.modulo_aluno == 6 %}
                                                             3º
                                                         {% endif %}
-                                                    {% elif current_user.curso_aluno.turno_curso == "Noturno" %}
+                                                    {% elif current_user.curso_aluno.ensino_medio_integrado_curso == False %}
                                                         {{ current_user.modulo_aluno }}º MÓD.
                                                     {% endif %}
                                                     {{ current_user.curso_aluno.sigla_curso }}

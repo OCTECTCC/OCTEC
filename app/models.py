@@ -29,6 +29,7 @@ class Cursos(db.Model):
     descricao_curso = db.Column(db.String(128), nullable=False)
     turno_curso = db.Column(db.String(128), nullable=False)
     qtd_modulos_curso = db.Column(db.Integer, nullable=False)
+    ensino_medio_integrado_curso = db.Column(db.Boolean, nullable=False)
 
     alunos_curso = db.relationship("Alunos", back_populates="curso_aluno")
     aulas_curso = db.relationship("Aulas", back_populates="curso_aula")

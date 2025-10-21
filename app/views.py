@@ -34,14 +34,14 @@ def index():
                     Aulas.id_etec_aula == current_user.id_etec_aluno
                 ]                
 
-                if current_user.curso_aluno.turno_curso in ("Manhã", "Integral", "Tarde"):
+                if current_user.curso_aluno.ensino_medio_integrado_curso == True:
                     if current_user.modulo_aluno in (1, 2):
                         ano_aula = current_user.ano_origem_aluno
                     elif current_user.modulo_aluno in (3, 4):
                         ano_aula = current_user.ano_origem_aluno + 1
                     elif current_user.modulo_aluno in (5, 6):
                         ano_aula = current_user.ano_origem_aluno + 2
-                elif current_user.curso_aluno.turno_curso == "Noturno":
+                elif current_user.curso_aluno.ensino_medio_integrado_curso == False:
                     if current_user.semestre_origem_aluno == 1:
                         if current_user.modulo_aluno in (1, 2):
                             ano_aula = current_user.ano_origem_aluno
@@ -52,7 +52,7 @@ def index():
                             ano_aula = current_user.ano_origem_aluno
                         elif current_user.modulo_aluno in (2, 3):
                             ano_aula = current_user.ano_origem_aluno + 1
-                        elif current_user.modulo_aluno in (2, 3):
+                        elif current_user.modulo_aluno == 4:
                             ano_aula = current_user.ano_origem_aluno + 2
 
                 filtro_aulas.append(Aulas.ano_aula == ano_aula)
@@ -68,17 +68,18 @@ def index():
             grupos_aulas = defaultdict(list)
 
             for aula in aulas:
-                if aula.curso_aula.turno_curso in ("Manhã", "Integral", "Tarde"):
+                if aula.curso_aula.ensino_medio_integrado_curso == True:
                     if aula.modulo_aula in (1,2):
                         serie_modulo = "1º"
                     elif aula.modulo_aula in (3,4):
                         serie_modulo = "2º"
                     elif aula.modulo_aula in (5,6):
                         serie_modulo = "3º"
-                elif aula.curso_aula.turno_curso == "Noturno":
+                    descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
+                elif aula.curso_aula.ensino_medio_integrado_curso == False:
                     serie_modulo = f"{aula.modulo_aula}º MÓD."
+                    descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
                 
-                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
                 grupos_aulas[descricao_aula].append(aula)
 
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
