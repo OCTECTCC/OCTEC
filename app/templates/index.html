@@ -13,7 +13,7 @@
     <body class="d-flex flex-column min-vh-100 text-bg-light overflow-md-hidden">
         {% block body %}
             {% if current_user.is_authenticated %}
-                <header class="d-flex container-fluid border-bottom py-2">
+                <header id="header" class="d-flex container-fluid border-bottom py-2">
                     <div class="d-flex align-items-center p-2">
                         <img src="{{ url_for('static', filename='img/logo_V2.png') }}" style="height: 40px">
                         <span class="ms-2 fw-semibold">OCTEC</span>
@@ -30,10 +30,10 @@
                         </a>
                     </div>
                 </header>
-                <main class="d-flex flex-grow-1 text-bg-dark">
+                <main class="d-flex flex-grow-1 text-bg-dark overflow-hidden">
                     <div class="row g-0 w-100">
-                        <aside class="d-flex flex-column col-12 col-md-3 text-bg-light">
-                            <div class="d-flex flex-column flex-grow-1 overflow-auto">
+                        <aside class="d-flex flex-column col-12 col-md-3 text-bg-light" style="max-height: calc(100vh - var(--altura-header)); overflow-y: auto">
+                            <div class="d-flex flex-column flex-grow-1" style="min-height:  0">
                                 <div id="gaveta_canais" class="accordion accordion-flush">
                                     <div class="accordion-item">
                                         <div class="accordion-header">
@@ -43,7 +43,7 @@
                                         </div>
                                         <div id="gaveta_geral" class="accordion-collapse collapse" data-bs-parent="#gaveta_canais">
                                             <div class="accordion-body p-0">
-                                                <div class="list-group list-group-flush overflow-auto">
+                                                <div class="list-group list-group-flush">
                                                     {% for canal in canais %}
                                                         {% if tipo_usuario >= canal.id_cargo_leitor_canal %}
                                                             <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}">
@@ -86,7 +86,7 @@
                                             </div>
                                             <div id="gaveta_aulas" class="accordion-collapse collapse" data-bs-parent="#gaveta_canais">
                                                 <div class="accordion-body p-0">
-                                                    <div class="list-group list-group-flush overflow-auto">
+                                                    <div class="list-group list-group-flush">
                                                         {% for aula in aulas %}    
                                                             <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}">
                                                                 <div class="d-flex justify-content-between align-items-center">
@@ -107,44 +107,40 @@
                                     {% elif current_user.id_cargo_usuario > 1 %}
                                         <div class="accordion-item">
                                             <div class="accordion-header">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_todas_aulas">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_aulas">
                                                     Aulas
                                                 </button>
                                             </div>
-                                            <div id="gaveta_todas_aulas" class="accordion-collapse collapse" data-bs-parent="#gaveta_canais">
-                                                <div class="accordion-body p-0">
-                                                    {% for descricao_aula, aulas_da_sala in aulas_por_sala %}
-                                                        {% set id_aula = descricao_aula | replace("º", "o") | replace(" ", "_") | lower %}
-                                                        <div id="gaveta_aulas" class="accordion accordion-flush">
-                                                            <div class="accordion-item">
-                                                                <div class="accordion-header">
-                                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_aulas_{{ id_aula }}">
-                                                                        {{ descricao_aula }}
-                                                                    </button>
-                                                                </div>
-                                                                <div id="gaveta_aulas_{{ id_aula }}" class="accordion-collapse collapse" data-bs-parent="#gaveta_aulas">
-                                                                    <div class="accordion-body p-0">
-                                                                        <div class="list-group list-group-flush overflow-auto">
-                                                                            {% for aula in aulas_da_sala %}
-                                                                                <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}">
-                                                                                    <div class="d-flex justify-content-between align-items-center">
-                                                                                        <div class="py-1">
-                                                                                            {{ aula.materia_aula.descricao_materia }}
-                                                                                            {% if aula.turma_aula != "AB" %}
-                                                                                                T{{ aula.turma_aula }}
-                                                                                            {% endif %}
-                                                                                        </div>
-                                                                                        <small class="text-muted"></small>
-                                                                                    </div>
-                                                                                </a>
-                                                                            {% endfor %}
-                                                                        </div>
-                                                                    </div>
+                                            <div id="gaveta_aulas" class="accordion-collapse collapse" data-bs-parent="#gaveta_canais">
+                                                {% for descricao_aula, aulas_da_sala in aulas_por_sala %}
+                                                    {% set id_aula = descricao_aula | replace("º", "o") | replace(" ", "_") | lower %}
+                                                    <div class="accordion-item">
+                                                        <div class="accordion-header">
+                                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_aulas_{{ id_aula }}_collapse">
+                                                                {{ descricao_aula }}
+                                                            </button>
+                                                        </div>
+                                                        <div id="gaveta_aulas_{{ id_aula }}_collapse" class="accordion-collapse collapse" data-bs-parent="#gaveta_aulas">
+                                                            <div class="accordion-body p-0">
+                                                                <div class="list-group list-group-flush">
+                                                                    {% for aula in aulas_da_sala %}
+                                                                        <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}">
+                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                <div class="py-1">
+                                                                                    {{ aula.materia_aula.descricao_materia }}
+                                                                                    {% if aula.turma_aula != "AB" %}
+                                                                                        T{{ aula.turma_aula }}
+                                                                                    {% endif %}
+                                                                                </div>
+                                                                                <small class="text-muted"></small>
+                                                                            </div>
+                                                                        </a>
+                                                                    {% endfor %}
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    {% endfor %}
-                                                </div>
+                                                    </div>
+                                                {% endfor %}
                                             </div>
                                         </div>
                                     {% endif %}
@@ -198,5 +194,6 @@
         {% endwith %}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
         <script src="{{ url_for('static', filename='js/flash.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     </body>
 </html>
