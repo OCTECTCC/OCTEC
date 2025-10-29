@@ -21,6 +21,7 @@ class Etecs(db.Model):
     alunos_etec = db.relationship("Alunos", back_populates="etec_aluno")
     professores_etec = db.relationship("Professores", back_populates="etec_prof")
     coordenadores_etec = db.relationship("Coordenadores", back_populates="etec_coor")
+    diretor_etec = db.relationship("Diretores", back_populates="etec_dir")
     aulas_etec = db.relationship("Aulas", back_populates="etec_aula")
 
 coordenadores_cursos = db.Table(
@@ -58,6 +59,7 @@ class Cargos(db.Model):
     alunos_cargo = db.relationship("Alunos", back_populates="cargo_usuario")
     professores_cargo = db.relationship("Professores", back_populates="cargo_usuario")
     coordenadores_cargo = db.relationship("Coordenadores", back_populates="cargo_usuario")
+    diretores_cargo = db.relationship("Diretores", back_populates="cargo_usuario")
 
     leitores_canais_cargo = db.relationship("Canais", back_populates="cargo_leitor_canal", foreign_keys="[Canais.id_cargo_leitor_canal]")
     emissores_canais_cargo = db.relationship("Canais", back_populates="cargo_emissor_canal", foreign_keys="[Canais.id_cargo_emissor_canal]")
@@ -108,6 +110,8 @@ class Alunos(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_aluno
+    def get_id(self):
+        return f"aluno-{self.id_aluno}"
     
 class Professores(db.Model, UserMixin):
     __tablename__ = "professores"
@@ -141,6 +145,8 @@ class Professores(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_prof
+    def get_id(self):
+        return f"prof-{self.id_prof}"
 
 class Coordenadores(db.Model, UserMixin):
     __tablename__ = "coordenadores"
@@ -176,6 +182,39 @@ class Coordenadores(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_coor
+    def get_id(self):
+        return f"coor-{self.id_coor}"
+
+class Diretores(db.Model, UserMixin):
+    __tablename__ = "diretores"
+    id_dir = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    login_dir = db.Column(db.String(11), nullable=False)
+    senha_dir = db.Column(db.String(128), nullable=False)
+    cpf_dir = db.Column(db.String(11), nullable=False)
+    nome_dir = db.Column(db.String(128), nullable=False)
+
+    id_etec_dir = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    etec_dir = db.relationship("Etecs", back_populates="diretor_etec")
+
+    id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_usuario = db.relationship("Cargos", back_populates="diretores_cargo")
+
+    def __init__(self, login_dir, cpf_dir, nome_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
+        self.login_dir = login_dir
+        self.cpf_dir = cpf_dir
+        self.nome_dir = nome_dir
+        self.id_cargo_usuario = id_cargo_usuario
+        self.id_etec_dir = id_etec_dir
+        if senha_texto:
+            self.senha_dir = generate_password_hash(senha_texto)
+        else:
+            self.senha_dir = generate_password_hash(cpf_dir)
+
+    @property
+    def id(self):
+        return self.id_dir
+    def get_id(self):
+        return f"dir-{self.id_dir}"
 
 class Aulas(db.Model):
     __tablename__ = "aulas"

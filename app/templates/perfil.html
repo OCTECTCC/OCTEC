@@ -34,6 +34,8 @@
                                             {{ current_user.nome_prof[0]|upper }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
                                             {{ current_user.nome_coor[0]|upper }}
+                                        {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.nome_dir[0]|upper }}
                                         {% endif %}
                                     </div>
                                     <h5 class="card-title mb-1">
@@ -43,6 +45,8 @@
                                             {{ current_user.nome_prof }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
                                             {{ current_user.nome_coor }}
+                                        {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.nome_dir }}
                                         {% endif %}
                                     </h5>
                                     <p class="text-muted small mb-2">
@@ -60,6 +64,8 @@
                                             {{ current_user.etec_prof.nome_etec }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
                                             {{ current_user.etec_coor.nome_etec }}
+                                        {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.etec_dir.nome_etec }}
                                         {% endif %}
                                     </p>
                                     <div class="d-grid gap-2">
@@ -87,6 +93,8 @@
                                                     {{ current_user.nome_prof }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
                                                     {{ current_user.nome_coor }}
+                                                {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.nome_dir }}
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -105,6 +113,8 @@
                                                     {{ current_user.login_prof }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
                                                     {{ current_user.login_coor }}
+                                                {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.login_dir }}
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -117,6 +127,8 @@
                                                     {{ current_user.cpf_prof }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
                                                     {{ current_user.cpf_coor }}
+                                                {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.cpf_dir }}
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -137,6 +149,8 @@
                                                     {{ current_user.etec_prof.nome_etec }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
                                                     {{ current_user.etec_coor.nome_etec }}
+                                                {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.etec_dir.nome_etec }}
                                                 {% endif %}
                                             </div>
                                         </div>
