@@ -45,7 +45,7 @@
                                             <div class="accordion-body p-0">
                                                 <div class="list-group list-group-flush">
                                                     {% for canal in canais %}
-                                                        {% if tipo_usuario >= canal.id_cargo_leitor_canal %}
+                                                        {% if current_user.id_cargo_usuario >= canal.id_cargo_leitor_canal %}
                                                             <a class="list-group-item list-group-item-action" href="{{ url_for('views.index') }}">
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <div class="py-1">{{ canal.descricao_canal }}</div>

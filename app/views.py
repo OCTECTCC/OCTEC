@@ -14,7 +14,9 @@ def load_user(id_usuario):
     if tipo_usuario == 1:
         return Alunos.query.get(int(id_usuario))
     elif tipo_usuario == 2:
-        return  Professores.query.get(int(id_usuario))
+        return Professores.query.get(int(id_usuario))
+    elif tipo_usuario == 3:
+        return Coordenadores.query.get(int(id_usuario))
     else:
         return None
 
@@ -84,7 +86,66 @@ def index():
 
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
-        return render_template("index.html", canais=canais, tipo_usuario=tipo_usuario, aulas=aulas, aulas_por_sala=aulas_por_sala)
+        elif tipo_usuario == 3:
+            aulas = Aulas.query.filter(
+                Aulas.id_etec_aula == current_user.id_etec_coor
+            ).all()
+
+            grupos_aulas = defaultdict(list)
+
+            if current_user.pedagogico_coor == True:
+                for aula in aulas:
+                    if aula.curso_aula.ensino_medio_integrado_curso == True:
+                        if aula.modulo_aula in (1,2):
+                            serie_modulo = "1º"
+                        elif aula.modulo_aula in (3,4):
+                            serie_modulo = "2º"
+                        elif aula.modulo_aula in (5,6):
+                            serie_modulo = "3º"
+                        descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
+                    elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                        serie_modulo = f"{aula.modulo_aula}º MÓD."
+                        descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
+                    
+                    grupos_aulas[descricao_aula].append(aula)
+            else:
+                if current_user.ensino_medio_coor == True:
+                    for aula in aulas:
+                        if aula.turma_aula == "AB":
+                            if aula.curso_aula.ensino_medio_integrado_curso == True:
+                                if aula.modulo_aula in (1,2):
+                                    serie_modulo = "1º"
+                                elif aula.modulo_aula in (3,4):
+                                    serie_modulo = "2º"
+                                elif aula.modulo_aula in (5,6):
+                                    serie_modulo = "3º"
+                                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
+                            elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                                serie_modulo = f"{aula.modulo_aula}º MÓD."
+                                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
+                            
+                            grupos_aulas[descricao_aula].append(aula)
+
+                for aula in aulas:
+                    for curso in current_user.cursos_coor:
+                        if aula.id_curso_aula == curso.id_curso and aula.turma_aula != "AB":
+                            if aula.curso_aula.ensino_medio_integrado_curso == True:
+                                if aula.modulo_aula in (1,2):
+                                    serie_modulo = "1º"
+                                elif aula.modulo_aula in (3,4):
+                                    serie_modulo = "2º"
+                                elif aula.modulo_aula in (5,6):
+                                    serie_modulo = "3º"
+                                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
+                            elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                                serie_modulo = f"{aula.modulo_aula}º MÓD."
+                                descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
+
+                            grupos_aulas[descricao_aula].append(aula)
+
+            aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
+
+        return render_template("index.html", canais=canais, aulas=aulas, aulas_por_sala=aulas_por_sala)
         
     else:  
         return render_template("index.html")
@@ -138,7 +199,7 @@ def login():
             if professor:
                 if etec.id_etec != professor.id_etec_prof:
                     flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))      
+                    return redirect(url_for("views.login"))
 
                 if check_password_hash(professor.senha_prof, professor.cpf_prof) and senha_usuario == professor.cpf_prof:
                     session["session_tipo_usuario"] = tipo_usuario
@@ -148,6 +209,28 @@ def login():
                 if check_password_hash(professor.senha_prof, senha_usuario):
                     session["session_tipo_usuario"] = tipo_usuario
                     login_user(professor)
+                    return redirect(url_for("views.index"))  
+                else:
+                    flash("Usuário ou senha incorretos", "danger")
+            else:
+                flash("Usuário ou senha incorretos", "danger")
+
+        elif tipo_usuario == 3:
+            coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
+
+            if coordenador:
+                if etec.id_etec != coordenador.id_etec_coor:
+                    flash("ETEC inválida", "danger")
+                    return redirect(url_for("views.login"))
+
+                if check_password_hash(coordenador.senha_coor, coordenador.cpf_coor) and senha_usuario == coordenador.cpf_coor:
+                    session["session_tipo_usuario"] = tipo_usuario
+                    session["session_login_usuario"] = login_usuario
+                    return redirect(url_for("views.primeiro_acesso"))
+                
+                if check_password_hash(coordenador.senha_coor, senha_usuario):
+                    session["session_tipo_usuario"] = tipo_usuario
+                    login_user(coordenador)
                     return redirect(url_for("views.index"))  
                 else:
                     flash("Usuário ou senha incorretos", "danger")
@@ -238,6 +321,23 @@ def primeiro_acesso():
                 return redirect(url_for("views.login"))
 
             professor.senha_prof = generate_password_hash(senha_usuario)
+            db.session.commit()
+
+            session.pop("session_tipo_usuario", None)
+            session.pop("session_login_usuario", None)
+            flash("Senha redefinida com sucesso!", "success")
+            return redirect(url_for("views.login"))
+
+        elif tipo_usuario == 3:
+            coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
+
+            if not coordenador:
+                session.pop("session_tipo_usuario", None)
+                session.pop("session_login_usuario", None)
+                flash("Erro", "danger")
+                return redirect(url_for("views.login"))
+
+            coordenador.senha_coor = generate_password_hash(senha_usuario)
             db.session.commit()
 
             session.pop("session_tipo_usuario", None)
