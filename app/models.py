@@ -1,6 +1,7 @@
 from . import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
+from sqlalchemy import text
 
 class Cidades(db.Model):
     __tablename__ = "cidades"
@@ -23,6 +24,7 @@ class Etecs(db.Model):
     coordenadores_etec = db.relationship("Coordenadores", back_populates="etec_coor")
     diretor_etec = db.relationship("Diretores", back_populates="etec_dir")
     aulas_etec = db.relationship("Aulas", back_populates="etec_aula")
+    canais_etec = db.relationship("Canais", back_populates="etec_canal")
 
 coordenadores_cursos = db.Table(
     "coordenadores_cursos",
@@ -89,6 +91,8 @@ class Alunos(db.Model, UserMixin):
     id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
     cargo_usuario = db.relationship("Cargos", back_populates="alunos_cargo")
 
+    mensagens_aluno = db.relationship("Mensagens", back_populates="aluno_msg")
+
     def __init__(self, rm_aluno, cpf_aluno, nome_aluno, sexo_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
         self.cpf_aluno = cpf_aluno
@@ -132,6 +136,7 @@ class Professores(db.Model, UserMixin):
     cargo_usuario = db.relationship("Cargos", back_populates="professores_cargo")
 
     aulas_prof = db.relationship("Aulas", back_populates="professor_aula")
+    mensagens_prof = db.relationship("Mensagens", back_populates="prof_msg")
 
     def __init__(self, login_prof, cpf_prof, nome_prof, sexo_prof, biblioteca_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
@@ -170,6 +175,7 @@ class Coordenadores(db.Model, UserMixin):
     cargo_usuario = db.relationship("Cargos", back_populates="coordenadores_cargo")
 
     cursos_coor = db.relationship("Cursos", secondary=coordenadores_cursos, back_populates="coordenadores_curso")
+    mensagens_coor = db.relationship("Mensagens", back_populates="coor_msg")
 
     def __init__(self, login_coor, cpf_coor, nome_coor, sexo_coor, ensino_medio_coor, pedagogico_coor, id_cargo_usuario, id_etec_coor, senha_texto=None):
         self.login_coor = login_coor
@@ -205,6 +211,8 @@ class Diretores(db.Model, UserMixin):
 
     id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
     cargo_usuario = db.relationship("Cargos", back_populates="diretores_cargo")
+
+    mensagens_dir = db.relationship("Mensagens", back_populates="dir_msg")
 
     def __init__(self, login_dir, cpf_dir, nome_dir, sexo_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
         self.login_dir = login_dir
@@ -244,6 +252,8 @@ class Aulas(db.Model):
     id_etec_aula = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_aula = db.relationship("Etecs", back_populates="aulas_etec")
 
+    mensagens_aula = db.relationship("Mensagens", back_populates="aula_msg")
+
 class Canais(db.Model):
     __tablename__ = "canais"
     id_canal = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -257,3 +267,32 @@ class Canais(db.Model):
 
     id_cargo_moderador_canal = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
     cargo_moderador_canal = db.relationship("Cargos", back_populates="moderadores_canais_cargo", foreign_keys=[id_cargo_moderador_canal])
+
+    id_etec_canal = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    etec_canal = db.relationship("Etecs", back_populates="canais_etec")
+
+    mensagens_canal = db.relationship("Mensagens", back_populates="canal_msg")
+
+class Mensagens(db.Model):
+    __tablename__ = "mensagens"
+    id_msg = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    texto_msg = db.Column(db.String(200), nullable=False)
+    data_hora_msg = db.Column(db.DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+    id_aula_msg = db.Column(db.Integer, db.ForeignKey("aulas.id_aula"))
+    aula_msg = db.relationship("Aulas", back_populates="mensagens_aula")
+
+    id_canal_msg = db.Column(db.Integer, db.ForeignKey("canais.id_canal"))
+    canal_msg = db.relationship("Canais", back_populates="mensagens_canal")
+
+    id_aluno_msg = db.Column(db.Integer, db.ForeignKey("alunos.id_aluno"))
+    aluno_msg = db.relationship("Alunos", back_populates="mensagens_aluno")
+
+    id_prof_msg = db.Column(db.Integer, db.ForeignKey("professores.id_prof"))
+    prof_msg = db.relationship("Professores", back_populates="mensagens_prof")
+
+    id_coor_msg = db.Column(db.Integer, db.ForeignKey("coordenadores.id_coor"))
+    coor_msg = db.relationship("Coordenadores", back_populates="mensagens_coor")
+
+    id_dir_msg = db.Column(db.Integer, db.ForeignKey("diretores.id_dir"))
+    dir_msg = db.relationship("Diretores", back_populates="mensagens_dir")

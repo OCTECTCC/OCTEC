@@ -50,11 +50,11 @@ def load_user(id_usuario):
 @views.route("/")
 def index():
     if current_user.is_authenticated:
-        canais = Canais.query.order_by(Canais.descricao_canal).all()
-
         tipo_usuario = current_user.id_cargo_usuario
 
         if tipo_usuario == 1:
+            canais = Canais.query.filter_by(id_etec_canal=current_user.etec_aluno.id_etec).order_by(Canais.descricao_canal).all()
+
             if current_user.situacao_aluno == "CURSANDO":
                 filtro_aulas = [
                     Aulas.modulo_aula == current_user.modulo_aluno,
@@ -89,6 +89,8 @@ def index():
                 aulas_por_sala = None
 
         elif tipo_usuario == 2:
+            canais = Canais.query.filter_by(id_etec_canal=current_user.etec_prof.id_etec).order_by(Canais.descricao_canal).all()
+            
             aulas = Aulas.query.filter(
                 Aulas.id_professor_aula == current_user.id_prof,
                 Aulas.id_etec_aula == current_user.id_etec_prof
@@ -114,6 +116,8 @@ def index():
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
         elif tipo_usuario == 3:
+            canais = Canais.query.filter_by(id_etec_canal=current_user.etec_coor.id_etec).order_by(Canais.descricao_canal).all()
+
             aulas = Aulas.query.filter(
                 Aulas.id_etec_aula == current_user.id_etec_coor
             ).all()
@@ -173,6 +177,8 @@ def index():
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
         elif tipo_usuario == 4:
+            canais = Canais.query.filter_by(id_etec_canal=current_user.etec_dir.id_etec).order_by(Canais.descricao_canal).all()
+            
             aulas = Aulas.query.filter(
                 Aulas.id_etec_aula == current_user.id_etec_dir
             ).all()
