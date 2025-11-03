@@ -50,7 +50,31 @@
                                         {% endif %}
                                     </h5>
                                     <p class="text-muted small mb-2">
-                                        {{ current_user.cargo_usuario.descricao_cargo }}
+                                        {% if current_user.id_cargo_usuario == 1 %}
+                                            {% if current_user.sexo_aluno == "M" %}
+                                                {{ current_user.cargo_usuario.descricao_cargo }}
+                                            {% elif current_user.sexo_aluno == "F" %}
+                                                Aluna
+                                            {% endif %}
+                                        {% elif current_user.id_cargo_usuario == 2 %}
+                                            {% if current_user.sexo_prof == "M" %}
+                                                {{ current_user.cargo_usuario.descricao_cargo }}
+                                            {% elif current_user.sexo_prof == "F" %}
+                                                Professora
+                                            {% endif %}
+                                        {% elif current_user.id_cargo_usuario == 3 %}
+                                            {% if current_user.sexo_coor == "M" %}
+                                                {{ current_user.cargo_usuario.descricao_cargo }}
+                                            {% elif current_user.sexo_coor == "F" %}
+                                                Coordenadora
+                                            {% endif %}
+                                        {% elif current_user.id_cargo_usuario == 4 %}
+                                            {% if current_user.sexo_dir == "M" %}
+                                                {{ current_user.cargo_usuario.descricao_cargo }}
+                                            {% elif current_user.sexo_dir == "F" %}
+                                                Diretora
+                                            {% endif %}
+                                        {% endif %}
                                         {% if current_user.id_cargo_usuario == 1 %}
                                             {% if current_user.representante_aluno == True %}
                                                 - Representante

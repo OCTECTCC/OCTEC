@@ -72,6 +72,7 @@ class Alunos(db.Model, UserMixin):
     senha_aluno = db.Column(db.String(128), nullable=False)
     cpf_aluno = db.Column(db.String(11), nullable=False)
     nome_aluno = db.Column(db.String(128), nullable=False)
+    sexo_aluno = db.Column(db.String(1), nullable=False)
     modulo_aluno = db.Column(db.Integer, nullable=False)
     turma_aluno = db.Column(db.String(1), nullable=False)
     situacao_aluno = db.Column(db.String(128), nullable=False)
@@ -88,10 +89,11 @@ class Alunos(db.Model, UserMixin):
     id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
     cargo_usuario = db.relationship("Cargos", back_populates="alunos_cargo")
 
-    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
+    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, sexo_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
         self.cpf_aluno = cpf_aluno
         self.nome_aluno = nome_aluno
+        self.sexo_aluno = sexo_aluno
         self.modulo_aluno = modulo_aluno
         self.turma_aluno = turma_aluno
         self.situacao_aluno = situacao_aluno
@@ -120,6 +122,7 @@ class Professores(db.Model, UserMixin):
     senha_prof = db.Column(db.String(128), nullable=False)
     cpf_prof = db.Column(db.String(11), nullable=False)
     nome_prof = db.Column(db.String(128), nullable=False)
+    sexo_prof = db.Column(db.String(1), nullable=False)
     biblioteca_prof = db.Column(db.Boolean, nullable=False)
 
     id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
@@ -130,10 +133,11 @@ class Professores(db.Model, UserMixin):
 
     aulas_prof = db.relationship("Aulas", back_populates="professor_aula")
 
-    def __init__(self, login_prof, cpf_prof, nome_prof, biblioteca_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
+    def __init__(self, login_prof, cpf_prof, nome_prof, sexo_prof, biblioteca_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
         self.cpf_prof = cpf_prof
         self.nome_prof = nome_prof
+        self.sexo_prof = sexo_prof
         self.biblioteca_prof = biblioteca_prof
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_prof = id_etec_prof
@@ -155,6 +159,7 @@ class Coordenadores(db.Model, UserMixin):
     senha_coor = db.Column(db.String(128), nullable=False)
     cpf_coor = db.Column(db.String(11), nullable=False)
     nome_coor = db.Column(db.String(128), nullable=False)
+    sexo_coor = db.Column(db.String(1), nullable=False)
     ensino_medio_coor = db.Column(db.Boolean, nullable=False)
     pedagogico_coor = db.Column(db.Boolean, nullable=False)
 
@@ -166,10 +171,11 @@ class Coordenadores(db.Model, UserMixin):
 
     cursos_coor = db.relationship("Cursos", secondary=coordenadores_cursos, back_populates="coordenadores_curso")
 
-    def __init__(self, login_coor, cpf_coor, nome_coor, ensino_medio_coor, pedagogico_coor, id_cargo_usuario, id_etec_coor, senha_texto=None):
+    def __init__(self, login_coor, cpf_coor, nome_coor, sexo_coor, ensino_medio_coor, pedagogico_coor, id_cargo_usuario, id_etec_coor, senha_texto=None):
         self.login_coor = login_coor
         self.cpf_coor = cpf_coor
         self.nome_coor = nome_coor
+        self.sexo_coor = sexo_coor
         self.ensino_medio_coor = ensino_medio_coor
         self.pedagogico_coor = pedagogico_coor
         self.id_cargo_usuario = id_cargo_usuario
@@ -192,6 +198,7 @@ class Diretores(db.Model, UserMixin):
     senha_dir = db.Column(db.String(128), nullable=False)
     cpf_dir = db.Column(db.String(11), nullable=False)
     nome_dir = db.Column(db.String(128), nullable=False)
+    sexo_dir = db.Column(db.String(1), nullable=False)
 
     id_etec_dir = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_dir = db.relationship("Etecs", back_populates="diretor_etec")
@@ -199,10 +206,11 @@ class Diretores(db.Model, UserMixin):
     id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
     cargo_usuario = db.relationship("Cargos", back_populates="diretores_cargo")
 
-    def __init__(self, login_dir, cpf_dir, nome_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
+    def __init__(self, login_dir, cpf_dir, nome_dir, sexo_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
         self.login_dir = login_dir
         self.cpf_dir = cpf_dir
         self.nome_dir = nome_dir
+        self.sexo_dir = sexo_dir
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_dir = id_etec_dir
         if senha_texto:
