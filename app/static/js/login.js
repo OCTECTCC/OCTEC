@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (senha_input) senha_input.value = ""
     }
 
-    function update_login() {
+    function atualizar_login() {
         const opcao = tipo_usuario.options[tipo_usuario.selectedIndex]
         const texto_opcao = opcao ? opcao.text : ''
 
@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (tipo_usuario) {
-        tipo_usuario.addEventListener('change', update_login)
+        tipo_usuario.addEventListener('change', atualizar_login)
     }
 
-    update_login()
+    atualizar_login()
 })

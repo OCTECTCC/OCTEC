@@ -1,9 +1,18 @@
-from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify
+from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app
 from flask_login import current_user, login_user, logout_user, login_required
+from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 from collections import defaultdict
 from .models import *
 from . import login_manager, db
+
+from datetime import timezone, timedelta
+try:
+    from zoneinfo import ZoneInfo
+    fuso_horario_disponivel = True
+except Exception:
+    ZoneInfo = None
+    fuso_horario_disponivel = False
 
 views = Blueprint("views", __name__)
 
@@ -36,15 +45,15 @@ def load_user(id_usuario):
     except ValueError:
         return None
 
-    user = Diretores.query.get(id)
-    if user:
-        return user
-    user = Coordenadores.query.get(id)
-    if user:
-        return user
-    user = Professores.query.get(id)
-    if user:
-        return user
+    usuario = Diretores.query.get(id)
+    if usuario:
+        return usuario
+    usuario = Coordenadores.query.get(id)
+    if usuario:
+        return usuario
+    usuario = Professores.query.get(id)
+    if usuario:
+        return usuario
     return Alunos.query.get(id)
 
 @views.route("/")
@@ -206,6 +215,154 @@ def index():
         
     else:  
         return render_template("index.html")
+
+def converter_fuso_horario(data_hora, fuso_horario="America/Sao_Paulo"):
+    if not data_hora:
+        return None
+
+    if data_hora.tzinfo is None:
+        data_hora = data_hora.replace(tzinfo=timezone.utc)
+    
+    try:
+        if fuso_horario_disponivel:
+            zona = ZoneInfo(fuso_horario)
+        else:
+            zona = timezone(timedelta(hours=-3))
+        return data_hora.astimezone(zona).isoformat()
+    except Exception:
+        return data_hora.isoformat()
+
+@views.route("/api/mensagens", methods=["GET"])
+@login_required
+def api_mensagens():
+    tipo_chat = request.args.get("tipo_chat")
+    id_chat = request.args.get("id_chat", type=int)
+
+    if not tipo_chat or not id_chat:
+        return jsonify([])
+    
+    if tipo_chat == "canal":
+        mensagens = Mensagens.query.filter_by(id_canal_msg=id_chat).order_by(Mensagens.data_hora_msg.asc()).all()
+    elif tipo_chat == "aula":
+        mensagens = Mensagens.query.filter_by(id_aula_msg=id_chat).order_by(Mensagens.data_hora_msg.asc()).all()
+    else:
+        return jsonify([])
+
+    res_msg = []
+
+    for msg in mensagens:
+        emissor_msg = {}
+
+        if msg.aluno_msg:
+            emissor_msg = {"tipo_usuario": "aluno", "id_usuario": msg.id_aluno_msg, "nome_usuario": msg.aluno_msg.nome_aluno}
+        elif msg.prof_msg:
+            emissor_msg = {"tipo_usuario": "prof", "id_usuario": msg.id_prof_msg, "nome_usuario": msg.prof_msg.nome_prof}
+        elif msg.coor_msg:
+            emissor_msg = {"tipo_usuario": "coor", "id_usuario": msg.id_coor_msg, "nome_usuario": msg.coor_msg.nome_coor}
+        elif msg.dir_msg:
+            emissor_msg = {"tipo_usuario": "dir", "id_usuario": msg.id_dir_msg, "nome_usuario": msg.dir_msg.nome_dir}
+
+        res_msg.append({
+            "id_msg": msg.id_msg,
+            "texto_msg": msg.texto_msg,
+            "data_hora_msg": converter_fuso_horario(msg.data_hora_msg),
+            "emissor_msg": emissor_msg,
+            "id_canal_msg": msg.id_canal_msg,
+            "id_aula_msg": msg.id_aula_msg
+        })
+    
+    return jsonify(res_msg)
+
+@views.route("/api/mensagens/enviar", methods=["POST"])
+@login_required
+def api_enviar_mensagem():
+    payload = request.get_json(force=True, silent=True) or request.form
+    texto_msg = payload.get("texto_msg")
+    tipo_chat = payload.get("tipo_chat")
+    id_chat = payload.get("id_chat")
+
+    if not texto_msg or not tipo_chat or not id_chat:
+        return jsonify({"error": "Dados incompletos"}), 400
+    
+    texto_msg = texto_msg.strip()
+
+    if len(texto_msg) == 0:
+        return jsonify({"error": "Mensagem vazia"}), 400
+    if len(texto_msg) > 200:
+        return jsonify({"error": "Mensagem muito longa (máximo de 200 caracteres)"}), 400
+
+    msg = Mensagens(texto_msg=texto_msg)
+
+    try:
+        id_chat = int(id_chat)
+    except (TypeError, ValueError):
+        return jsonify({"error": "ID inválido"}), 400
+    
+    if tipo_chat == "canal":
+        msg.id_canal_msg = id_chat
+    elif tipo_chat == "aula":
+        msg.id_aula_msg = id_chat
+    else:
+        return jsonify({"error": "Meio inválido"}), 400
+
+    id_usuario_str = current_user.get_id()
+    tipo_usuario = None
+    id_usuario = None
+
+    if id_usuario_str and "-" in id_usuario_str:
+        tipo_usuario, id_usuario = id_usuario_str.split("-", 1)
+        try:
+            id_usuario = int(id_usuario)
+        except:
+            id_usuario = None
+    else:
+        if hasattr(current_user, "id_aluno"):
+            tipo_usuario, id_usuario = "aluno", getattr(current_user, "id_aluno")
+        elif hasattr(current_user, "id_prof"):
+            tipo_usuario, id_usuario = "prof", getattr(current_user, "id_prof")
+        elif hasattr(current_user, "id_coor"):
+            tipo_usuario, id_usuario = "coor", getattr(current_user, "id_coor")
+        elif hasattr(current_user, "id_dir"):
+            tipo_usuario, id_usuario = "dir", getattr(current_user, "id_dir")
+    
+    if tipo_usuario == "aluno":
+        msg.id_aluno_msg = id_usuario
+    elif tipo_usuario == "prof":
+        msg.id_prof_msg = id_usuario
+    elif tipo_usuario == "coor":
+        msg.id_coor_msg = id_usuario
+    elif tipo_usuario == "dir":
+        msg.id_dir_msg = id_usuario
+    else:
+        return jsonify({"error": "Usuário inválido"}), 400
+    
+    msg.data_hora_msg = func.now()
+
+    db.session.add(msg)
+    db.session.commit()
+
+    msg = Mensagens.query.get(msg.id_msg)
+
+    emissor_msg = {"tipo_usuario": tipo_usuario, "id_usuario": id_usuario}
+
+    if tipo_usuario == "aluno":
+        emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno if msg.aluno_msg else None
+    elif tipo_usuario == "prof":
+        emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof if msg.prof_msg else None
+    elif tipo_usuario == "coor":
+        emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor if msg.coor_msg else None
+    elif tipo_usuario == "dir":
+        emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir if msg.dir_msg else None
+
+    return jsonify({
+        "success": True,
+        "id_msg": msg.id_msg,
+        "texto_msg": msg.texto_msg,
+        "data_hora_msg": converter_fuso_horario(msg.data_hora_msg),
+        "emissor_msg": emissor_msg,
+        "id_canal_msg": msg.id_canal_msg,
+        "id_aula_msg": msg.id_aula_msg
+    }), 201
 
 @views.route("/login", methods=["GET","POST"])
 def login():
