@@ -549,6 +549,70 @@ def logout():
 def perfil():
     return render_template("perfil.html")
 
+@views.route("/perfil/alterar_senha", methods=["GET", "POST"])
+@login_required
+def alterar_senha():
+    if request.method == "POST":
+        senha_atual = request.form.get("senha_atual", "").strip()
+        nova_senha = request.form.get("nova_senha", "").strip()
+        confirmar_senha = request.form.get("confirmar_senha", "").strip()
+
+        if not senha_atual or not nova_senha or not confirmar_senha:
+            flash("Preencha todos os campos", "warning")
+            return redirect(url_for("views.alterar_senha"))
+
+        if nova_senha != confirmar_senha:
+            flash("As senhas não coincidem", "warning")
+            return redirect(url_for("views.alterar_senha"))
+        
+        if len(nova_senha) < 6:
+            flash("A nova senha deve ter pelo menos 6 caracteres", "warning")
+            return redirect(url_for("views.alterar_senha"))
+
+        cargo_usuario = getattr(current_user, "id_cargo_usuario", None)
+
+        if cargo_usuario == 1:
+            hash_senha_atual = current_user.senha_aluno
+            campo_senha = "senha_aluno"
+        elif cargo_usuario == 2:
+            hash_senha_atual = current_user.senha_tec
+            campo_senha = "senha_tec"
+        elif cargo_usuario == 3:
+            hash_senha_atual = current_user.senha_prof
+            campo_senha = "senha_prof"
+        elif cargo_usuario == 4:
+            hash_senha_atual = current_user.senha_coor
+            campo_senha = "senha_coor"
+        elif cargo_usuario == 5:
+            hash_senha_atual = current_user.senha_dir
+            campo_senha = "senha_dir"
+        else:
+            flash("Erro no cargo de usuário", "danger")
+            return redirect(url_for("views.perfil"))
+
+        if not check_password_hash(hash_senha_atual, senha_atual):
+            flash("Senha atual incorreta", "danger")
+            return redirect(url_for("views.alterar_senha"))
+
+        if check_password_hash(hash_senha_atual, nova_senha):
+            flash("A nova senha não pode ser igual a senha anterior", "danger")
+            return redirect(url_for("views.alterar_senha"))
+
+        setattr(current_user, campo_senha, generate_password_hash(nova_senha))
+
+        try:
+            db.session.commit()
+        except Exception as exception:
+            db.session.rollback()
+            current_app.logger.exception("Erro ao alterar senha")
+            flash("Ocorreu um erro ao salvar a nova senha. Tente novamente", "danger")
+            return redirect(url_for("views.alterar_senha"))
+        
+        flash("Senha alterada com sucesso", "success")
+        return redirect(url_for("views.perfil"))
+
+    return render_template("alterar_senha.html")
+
 @views.route("/primeiro_acesso", methods=["GET","POST"])
 def primeiro_acesso():
     if current_user.is_authenticated:

@@ -13,7 +13,7 @@
                 <nav class="flex-grow-1 list-group list-group-flush overflow-auto">
                     <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action text-bg-danger">Visão geral</a>
                     <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Editar perfil</a>
-                    <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Segurança</a>
+                    <a href="{{ url_for('views.alterar_senha') }}" class="list-group-item list-group-item-action">Alterar senha</a>
                     <a href="{{ url_for('views.logout') }}" class="list-group-item list-group-item-action text-danger border-bottom">Sair</a>
                 </nav>
                 <div class="d-flex align-items-center p-2 border-top">
@@ -106,7 +106,7 @@
                                     </p>
                                     <div class="d-grid gap-2">
                                         <a href="{{ url_for('views.perfil') }}" class="btn btn-outline-danger btn-sm">Editar perfil</a>
-                                        <a href="{{ url_for('views.perfil') }}" class="btn btn-outline-secondary btn-sm">Alterar senha</a>
+                                        <a href="{{ url_for('views.alterar_senha') }}" class="btn btn-outline-dark btn-sm">Alterar senha</a>
                                     </div>
                                 </div>
                             </div>
