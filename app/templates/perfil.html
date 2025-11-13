@@ -31,10 +31,12 @@
                                         {% if current_user.id_cargo_usuario == 1 %}
                                             {{ current_user.nome_aluno[0]|upper }}
                                         {% elif current_user.id_cargo_usuario == 2 %}
-                                            {{ current_user.nome_prof[0]|upper }}
+                                            {{ current_user.nome_tec[0]|upper }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
-                                            {{ current_user.nome_coor[0]|upper }}
+                                            {{ current_user.nome_prof[0]|upper }}
                                         {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.nome_coor[0]|upper }}
+                                        {% elif current_user.id_cargo_usuario == 5 %}
                                             {{ current_user.nome_dir[0]|upper }}
                                         {% endif %}
                                     </div>
@@ -42,10 +44,12 @@
                                         {% if current_user.id_cargo_usuario == 1 %}
                                             {{ current_user.nome_aluno }}
                                         {% elif current_user.id_cargo_usuario == 2 %}
-                                            {{ current_user.nome_prof }}
+                                            {{ current_user.nome_tec }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
-                                            {{ current_user.nome_coor }}
+                                            {{ current_user.nome_prof }}
                                         {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.nome_coor }}
+                                        {% elif current_user.id_cargo_usuario == 5 %}
                                             {{ current_user.nome_dir }}
                                         {% endif %}
                                     </h5>
@@ -57,18 +61,24 @@
                                                 Aluna
                                             {% endif %}
                                         {% elif current_user.id_cargo_usuario == 2 %}
+                                            {% if current_user.sexo_tec == "M" %}
+                                                {{ current_user.cargo_usuario.descricao_cargo }}
+                                            {% elif current_user.sexo_tec == "F" %}
+                                                Técnica
+                                            {% endif %}
+                                        {% elif current_user.id_cargo_usuario == 3 %}
                                             {% if current_user.sexo_prof == "M" %}
                                                 {{ current_user.cargo_usuario.descricao_cargo }}
                                             {% elif current_user.sexo_prof == "F" %}
                                                 Professora
                                             {% endif %}
-                                        {% elif current_user.id_cargo_usuario == 3 %}
+                                        {% elif current_user.id_cargo_usuario == 4 %}
                                             {% if current_user.sexo_coor == "M" %}
                                                 {{ current_user.cargo_usuario.descricao_cargo }}
                                             {% elif current_user.sexo_coor == "F" %}
                                                 Coordenadora
                                             {% endif %}
-                                        {% elif current_user.id_cargo_usuario == 4 %}
+                                        {% elif current_user.id_cargo_usuario == 5 %}
                                             {% if current_user.sexo_dir == "M" %}
                                                 {{ current_user.cargo_usuario.descricao_cargo }}
                                             {% elif current_user.sexo_dir == "F" %}
@@ -85,10 +95,12 @@
                                         {% if current_user.id_cargo_usuario == 1 %}
                                             {{ current_user.etec_aluno.nome_etec }}
                                         {% elif current_user.id_cargo_usuario == 2 %}
-                                            {{ current_user.etec_prof.nome_etec }}
+                                            {{ current_user.etec_tec.nome_etec }}
                                         {% elif current_user.id_cargo_usuario == 3 %}
-                                            {{ current_user.etec_coor.nome_etec }}
+                                            {{ current_user.etec_prof.nome_etec }}
                                         {% elif current_user.id_cargo_usuario == 4 %}
+                                            {{ current_user.etec_coor.nome_etec }}
+                                        {% elif current_user.id_cargo_usuario == 5 %}
                                             {{ current_user.etec_dir.nome_etec }}
                                         {% endif %}
                                     </p>
@@ -114,10 +126,12 @@
                                                 {% if current_user.id_cargo_usuario == 1 %}
                                                     {{ current_user.nome_aluno }}
                                                 {% elif current_user.id_cargo_usuario == 2 %}
-                                                    {{ current_user.nome_prof }}
+                                                    {{ current_user.nome_tec }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
-                                                    {{ current_user.nome_coor }}
+                                                    {{ current_user.nome_prof }}
                                                 {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.nome_coor }}
+                                                {% elif current_user.id_cargo_usuario == 5 %}
                                                     {{ current_user.nome_dir }}
                                                 {% endif %}
                                             </div>
@@ -134,10 +148,12 @@
                                                 {% if current_user.id_cargo_usuario == 1 %}
                                                     {{ current_user.rm_aluno }}
                                                 {% elif current_user.id_cargo_usuario == 2 %}
-                                                    {{ current_user.login_prof }}
+                                                    {{ current_user.login_tec }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
-                                                    {{ current_user.login_coor }}
+                                                    {{ current_user.login_prof }}
                                                 {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.login_coor }}
+                                                {% elif current_user.id_cargo_usuario == 5 %}
                                                     {{ current_user.login_dir }}
                                                 {% endif %}
                                             </div>
@@ -148,10 +164,12 @@
                                                 {% if current_user.id_cargo_usuario == 1 %}
                                                     {{ current_user.cpf_aluno }}
                                                 {% elif current_user.id_cargo_usuario == 2 %}
-                                                    {{ current_user.cpf_prof }}
+                                                    {{ current_user.cpf_tec }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
-                                                    {{ current_user.cpf_coor }}
+                                                    {{ current_user.cpf_prof }}
                                                 {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.cpf_coor }}
+                                                {% elif current_user.id_cargo_usuario == 5 %}
                                                     {{ current_user.cpf_dir }}
                                                 {% endif %}
                                             </div>
@@ -170,10 +188,12 @@
                                                 {% if current_user.id_cargo_usuario == 1 %}
                                                     {{ current_user.etec_aluno.nome_etec }}
                                                 {% elif current_user.id_cargo_usuario == 2 %}
-                                                    {{ current_user.etec_prof.nome_etec }}
+                                                    {{ current_user.etec_tec.nome_etec }}
                                                 {% elif current_user.id_cargo_usuario == 3 %}
-                                                    {{ current_user.etec_coor.nome_etec }}
+                                                    {{ current_user.etec_prof.nome_etec }}
                                                 {% elif current_user.id_cargo_usuario == 4 %}
+                                                    {{ current_user.etec_coor.nome_etec }}
+                                                {% elif current_user.id_cargo_usuario == 5 %}
                                                     {{ current_user.etec_dir.nome_etec }}
                                                 {% endif %}
                                             </div>

@@ -20,6 +20,7 @@ class Etecs(db.Model):
     cidade_etec = db.relationship("Cidades", back_populates="etecs_cidade")
     
     alunos_etec = db.relationship("Alunos", back_populates="etec_aluno")
+    tecnicos_etec = db.relationship("Tecnicos", back_populates="etec_tec")
     professores_etec = db.relationship("Professores", back_populates="etec_prof")
     coordenadores_etec = db.relationship("Coordenadores", back_populates="etec_coor")
     diretor_etec = db.relationship("Diretores", back_populates="etec_dir")
@@ -59,6 +60,7 @@ class Cargos(db.Model):
     descricao_cargo = db.Column(db.String(128), nullable=False)
 
     alunos_cargo = db.relationship("Alunos", back_populates="cargo_usuario")
+    tecnicos_cargo = db.relationship("Tecnicos", back_populates="cargo_usuario")
     professores_cargo = db.relationship("Professores", back_populates="cargo_usuario")
     coordenadores_cargo = db.relationship("Coordenadores", back_populates="cargo_usuario")
     diretores_cargo = db.relationship("Diretores", back_populates="cargo_usuario")
@@ -118,6 +120,41 @@ class Alunos(db.Model, UserMixin):
         return self.id_aluno
     def get_id(self):
         return f"aluno-{self.id_aluno}"
+
+class Tecnicos(db.Model, UserMixin):
+    __tablename__ = "tecnicos"
+    id_tec = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    login_tec = db.Column(db.String(11), nullable=False)
+    senha_tec = db.Column(db.String(128), nullable=False)
+    cpf_tec = db.Column(db.String(11), nullable=False)
+    nome_tec = db.Column(db.String(128), nullable=False)
+    sexo_tec = db.Column(db.String(1), nullable=False)
+
+    id_etec_tec = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    etec_tec = db.relationship("Etecs", back_populates="tecnicos_etec")
+
+    id_cargo_usuario = db.Column(db.Integer, db.ForeignKey("cargos.id_cargo"), nullable=False)
+    cargo_usuario = db.relationship("Cargos", back_populates="tecnicos_cargo")
+
+    mensagens_tec = db.relationship("Mensagens", back_populates="tec_msg")
+
+    def __init__(self, login_tec, cpf_tec, nome_tec, sexo_tec, id_cargo_usuario, id_etec_tec, senha_texto=None):
+        self.login_tec = login_tec
+        self.cpf_tec = cpf_tec
+        self.nome_tec = nome_tec
+        self.sexo_tec = sexo_tec
+        self.id_cargo_usuario = id_cargo_usuario
+        self.id_etec_tec = id_etec_tec
+        if senha_texto:
+            self.senha_tec = generate_password_hash(senha_texto)
+        else:
+            self.senha_tec = generate_password_hash(cpf_tec)
+
+    @property
+    def id(self):
+        return self.id_tec
+    def get_id(self):
+        return f"tec-{self.id_tec}"
     
 class Professores(db.Model, UserMixin):
     __tablename__ = "professores"
@@ -287,6 +324,9 @@ class Mensagens(db.Model):
 
     id_aluno_msg = db.Column(db.Integer, db.ForeignKey("alunos.id_aluno"))
     aluno_msg = db.relationship("Alunos", back_populates="mensagens_aluno")
+
+    id_tec_msg = db.Column(db.Integer, db.ForeignKey("tecnicos.id_tec"))
+    tec_msg = db.relationship("Tecnicos", back_populates="mensagens_tec")
 
     id_prof_msg = db.Column(db.Integer, db.ForeignKey("professores.id_prof"))
     prof_msg = db.relationship("Professores", back_populates="mensagens_prof")

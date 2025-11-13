@@ -9,16 +9,7 @@
         <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_V2.png') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-        <style>
-            .no-scrollbar {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
-            .no-scrollbar::-webkit-scrollbar {
-                width: 0;
-                height: 0;
-            }
-        </style>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     </head>
     <body class="d-flex flex-column min-vh-100 text-bg-light overflow-md-hidden">
         {% block body %}
@@ -53,7 +44,7 @@
                                                 <div class="list-group list-group-flush">
                                                     {% for canal in canais %}
                                                         {% if current_user.id_cargo_usuario >= canal.id_cargo_leitor_canal %}
-                                                            <a class="list-group-item list-group-item-action" href="#" data-canal="{{ canal.id_canal }}" data-descricao-canal="{{ canal.descricao_canal }}">
+                                                            <a class="list-group-item list-group-item-action" href="#" data-canal="{{ canal.id_canal }}" data-descricao-canal="{{ canal.descricao_canal }}" data-id-cargo-emissor="{{ canal.id_cargo_emissor_canal }}" data-emissor-descricao="{{ canal.cargo_emissor_canal.descricao_cargo }}">
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <div class="py-1">{{ canal.descricao_canal }}</div>
                                                                     <small class="text-muted"></small>
@@ -111,7 +102,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    {% elif current_user.id_cargo_usuario > 1 %}
+                                    {% elif current_user.id_cargo_usuario > 2 %}
                                         <div class="accordion-item">
                                             <div class="accordion-header">
                                                 <button class="accordion-button collapsed text-bg-danger" type="button" data-bs-toggle="collapse" data-bs-target="#gaveta_aulas">
@@ -156,11 +147,11 @@
                         </aside>
                         <section class="d-flex flex-column col-12 col-md-9 p-4 position-relative" style="min-height: 0">
                             <div id="chat_header" class="d-none position-absolute top-0 start-0 end-0 ps-2 py-2 z-3">
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex justify-content-center align-items-center">
                                     <h5 id="titulo_chat" class="px-3 py-2 rounded text-bg-danger mb-0"></h5>
                                 </div>
                             </div>
-                            <div id="mensagens_chat" class="position-absolute top-0 start-0 end-0 bottom-0 overflow-auto p-2 no-scrollbar" data-current-user="{{ current_user.get_id() }}">Selecione um canal</div>
+                            <div id="mensagens_chat" class="d-flex justify-content-center align-items-center position-absolute top-0 start-0 end-0 bottom-0 overflow-auto p-2 no-scrollbar" data-current-user="{{ current_user.get_id() }}" data-cargo-usuario="{{ current_user.id_cargo_usuario }}">Selecione um canal</div>
                             <div id="chat_form" class="d-none position-absolute bottom-0 start-0 end-0 px-3 z-3">
                                 <form id="form_chat" class="d-flex gap-2 p-2 bg-transparent" onsubmit="return false" autocomplete="off">
                                     <input id="input_chat" class="form-control p-2" type="text" maxlength="200" placeholder="Escreva uma mensagem" required disabled>

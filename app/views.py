@@ -31,6 +31,8 @@ def load_user(id_usuario):
         
         if tipo == "aluno":
             return Alunos.query.get(id)
+        elif tipo == "tec":
+            return Tecnicos.query.get(id)
         elif tipo == "prof":
             return Professores.query.get(id)
         elif tipo == "coor":
@@ -52,6 +54,9 @@ def load_user(id_usuario):
     if usuario:
         return usuario
     usuario = Professores.query.get(id)
+    if usuario:
+        return usuario
+    usuario = Tecnicos.query.get(id)
     if usuario:
         return usuario
     return Alunos.query.get(id)
@@ -98,6 +103,11 @@ def index():
                 aulas_por_sala = None
 
         elif tipo_usuario == 2:
+            canais = Canais.query.filter_by(id_etec_canal=current_user.etec_tec.id_etec).order_by(Canais.descricao_canal).all()
+            aulas = None
+            aulas_por_sala = None
+
+        elif tipo_usuario == 3:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_prof.id_etec).order_by(Canais.descricao_canal).all()
             
             aulas = Aulas.query.filter(
@@ -124,7 +134,7 @@ def index():
 
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
-        elif tipo_usuario == 3:
+        elif tipo_usuario == 4:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_coor.id_etec).order_by(Canais.descricao_canal).all()
 
             aulas = Aulas.query.filter(
@@ -185,7 +195,7 @@ def index():
 
             aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
-        elif tipo_usuario == 4:
+        elif tipo_usuario == 5:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_dir.id_etec).order_by(Canais.descricao_canal).all()
             
             aulas = Aulas.query.filter(
@@ -300,6 +310,20 @@ def api_enviar_mensagem():
     
     if tipo_chat == "canal":
         msg.id_canal_msg = id_chat
+
+        canal = Canais.query.get(id_chat)
+
+        if not canal:
+            return jsonify({"error": "Canal não encontrado"}), 404
+
+        try:
+            cargo_usuario = int(getattr(current_user, "id_cargo_usuario", None))
+        except Exception:
+            cargo_usuario = None
+        
+        if cargo_usuario is None or cargo_usuario < canal.id_cargo_emissor_canal:
+            return jsonify({"error": "Você não tem permissão para enviar mensagens neste canal"}), 403
+
     elif tipo_chat == "aula":
         msg.id_aula_msg = id_chat
     else:
@@ -407,6 +431,27 @@ def login():
                 flash("Usuário ou senha incorretos", "danger")
 
         elif tipo_usuario == 2:
+            tecnico = Tecnicos.query.filter_by(login_tec=login_usuario).first()
+
+            if tecnico:
+                if etec.id_etec != tecnico.id_etec_tec:
+                    flash("ETEC inválida", "danger")
+                    return redirect(url_for("views.login"))
+
+                if check_password_hash(tecnico.senha_tec, tecnico.cpf_tec) and senha_usuario == tecnico.cpf_tec:
+                    session["session_tipo_usuario"] = tipo_usuario
+                    session["session_login_usuario"] = login_usuario
+                    return redirect(url_for("views.primeiro_acesso"))
+                
+                if check_password_hash(tecnico.senha_tec, senha_usuario):
+                    login_user(tecnico)
+                    return redirect(url_for("views.index"))  
+                else:
+                    flash("Usuário ou senha incorretos", "danger")
+            else:
+                flash("Usuário ou senha incorretos", "danger")
+
+        elif tipo_usuario == 3:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
             if professor:
@@ -427,7 +472,7 @@ def login():
             else:
                 flash("Usuário ou senha incorretos", "danger")
 
-        elif tipo_usuario == 3:
+        elif tipo_usuario == 4:
             coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
 
             if coordenador:
@@ -448,7 +493,7 @@ def login():
             else:
                 flash("Usuário ou senha incorretos", "danger")
 
-        elif tipo_usuario == 4:
+        elif tipo_usuario == 5:
             diretor = Diretores.query.filter_by(login_dir=login_usuario).first()
 
             if diretor:
@@ -544,6 +589,23 @@ def primeiro_acesso():
             return redirect(url_for("views.login"))
 
         elif tipo_usuario == 2:
+            tecnico = Tecnicos.query.filter_by(login_tec=login_usuario).first()
+
+            if not tecnico:
+                session.pop("session_tipo_usuario", None)
+                session.pop("session_login_usuario", None)
+                flash("Erro", "danger")
+                return redirect(url_for("views.login"))
+
+            tecnico.senha_tec = generate_password_hash(senha_usuario)
+            db.session.commit()
+
+            session.pop("session_tipo_usuario", None)
+            session.pop("session_login_usuario", None)
+            flash("Senha redefinida com sucesso!", "success")
+            return redirect(url_for("views.login"))
+
+        elif tipo_usuario == 3:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
             if not professor:
@@ -560,7 +622,7 @@ def primeiro_acesso():
             flash("Senha redefinida com sucesso!", "success")
             return redirect(url_for("views.login"))
 
-        elif tipo_usuario == 3:
+        elif tipo_usuario == 4:
             coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
 
             if not coordenador:
@@ -577,7 +639,7 @@ def primeiro_acesso():
             flash("Senha redefinida com sucesso!", "success")
             return redirect(url_for("views.login"))
 
-        elif tipo_usuario == 4:
+        elif tipo_usuario == 5:
             diretor = Diretores.query.filter_by(login_dir=login_usuario).first()
 
             if not diretor:

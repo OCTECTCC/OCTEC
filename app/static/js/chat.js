@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const chat_header = document.getElementById("chat_header")
     const chat_form = document.getElementById("chat_form")
 
+    const cargo_usuario = mensagens_chat ? parseInt(mensagens_chat.dataset.cargoUsuario, 10) : null
+
+    const placeholder_padrao = "Escreva uma mensagem"
+
+    function resetar_placeholder() {
+        if (input_chat) input_chat.placeholder = placeholder_padrao
+    }
+
     const usuario_atual_bruto = mensagens_chat ? mensagens_chat.dataset.currentUser : null
 
     function converter_usuario_atual(usuario_atual_bruto) {
@@ -81,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (input_chat) {
             input_chat.value = ""
             input_chat.disabled = true
+            input_chat.placeholder = placeholder_padrao
         }
 
         if (enviar_chat) enviar_chat.disabled = true
@@ -140,9 +149,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         titulo_chat.textContent = descricao_chat
 
-        input_chat.disabled = false
-        enviar_chat.disabled = false
-        input_chat.focus()
+        let pode_enviar = true
+    
+        if (tipo_chat === "canal" && descricao_chat_clicado) {
+            const emissor_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-emissor")
+            const emissor_canal_desc = descricao_chat_clicado.getAttribute("data-emissor-descricao") || "usuários autorizados"
+            const emissor_canal = emissor_canal_str ? parseInt(emissor_canal_str, 10) : Infinity
+
+            pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_canal)
+
+            if (!pode_enviar) {
+                input_chat.disabled = true
+                enviar_chat.disabled = true
+                input_chat.placeholder = `Você não possui permissão para mandar mensagem neste canal`
+            } else {
+                input_chat.disabled = false
+                enviar_chat.disabled = false
+                resetar_placeholder()
+            }
+        } else {
+            input_chat.disabled = false
+            enviar_chat.disabled = false
+            resetar_placeholder()
+        }
+
+        if (!input_chat.disabled) input_chat.focus()
 
         scroll_automatico = true
 
@@ -187,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bubble.classList.add("p-2", "rounded", "d-inline-block")
 
             if (sou_eu) {
-                bubble.classList.add("text-bg-danger", "text-light", "text-end")
+                bubble.classList.add("text-bg-danger", "text-light", "text-start")
             } else {
                 bubble.classList.add("bg-light", "text-dark", "text-start")
             }
