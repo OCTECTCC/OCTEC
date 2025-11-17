@@ -26,6 +26,7 @@ class Etecs(db.Model):
     diretor_etec = db.relationship("Diretores", back_populates="etec_dir")
     aulas_etec = db.relationship("Aulas", back_populates="etec_aula")
     canais_etec = db.relationship("Canais", back_populates="etec_canal")
+    solicitacoes_etec = db.relationship("Solicitacoes", back_populates="etec_solict")
 
 coordenadores_cursos = db.Table(
     "coordenadores_cursos",
@@ -94,6 +95,7 @@ class Alunos(db.Model, UserMixin):
     cargo_usuario = db.relationship("Cargos", back_populates="alunos_cargo")
 
     mensagens_aluno = db.relationship("Mensagens", back_populates="aluno_msg")
+    solicitacoes_aluno = db.relationship("Solicitacoes", back_populates="aluno_solict")
 
     def __init__(self, rm_aluno, cpf_aluno, nome_aluno, sexo_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
@@ -137,6 +139,7 @@ class Tecnicos(db.Model, UserMixin):
     cargo_usuario = db.relationship("Cargos", back_populates="tecnicos_cargo")
 
     mensagens_tec = db.relationship("Mensagens", back_populates="tec_msg")
+    solicitacoes_tec = db.relationship("Solicitacoes", back_populates="tec_solict")
 
     def __init__(self, login_tec, cpf_tec, nome_tec, sexo_tec, id_cargo_usuario, id_etec_tec, senha_texto=None):
         self.login_tec = login_tec
@@ -174,6 +177,7 @@ class Professores(db.Model, UserMixin):
 
     aulas_prof = db.relationship("Aulas", back_populates="professor_aula")
     mensagens_prof = db.relationship("Mensagens", back_populates="prof_msg")
+    solicitacoes_prof = db.relationship("Solicitacoes", back_populates="prof_solict")
 
     def __init__(self, login_prof, cpf_prof, nome_prof, sexo_prof, biblioteca_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
@@ -213,6 +217,7 @@ class Coordenadores(db.Model, UserMixin):
 
     cursos_coor = db.relationship("Cursos", secondary=coordenadores_cursos, back_populates="coordenadores_curso")
     mensagens_coor = db.relationship("Mensagens", back_populates="coor_msg")
+    solicitacoes_coor = db.relationship("Solicitacoes", back_populates="coor_solict")
 
     def __init__(self, login_coor, cpf_coor, nome_coor, sexo_coor, ensino_medio_coor, pedagogico_coor, id_cargo_usuario, id_etec_coor, senha_texto=None):
         self.login_coor = login_coor
@@ -250,6 +255,7 @@ class Diretores(db.Model, UserMixin):
     cargo_usuario = db.relationship("Cargos", back_populates="diretores_cargo")
 
     mensagens_dir = db.relationship("Mensagens", back_populates="dir_msg")
+    solicitacoes_dir = db.relationship("Solicitacoes", back_populates="dir_solict")
 
     def __init__(self, login_dir, cpf_dir, nome_dir, sexo_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
         self.login_dir = login_dir
@@ -336,3 +342,26 @@ class Mensagens(db.Model):
 
     id_dir_msg = db.Column(db.Integer, db.ForeignKey("diretores.id_dir"))
     dir_msg = db.relationship("Diretores", back_populates="mensagens_dir")
+
+class Solicitacoes(db.Model):
+    __tablename__ = "solicitacoes"
+    id_solict = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    data_hora_solict = db.Column(db.DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+    id_etec_solict = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
+    etec_solict = db.relationship("Etecs", back_populates="solicitacoes_etec")
+
+    id_aluno_solict = db.Column(db.Integer, db.ForeignKey("alunos.id_aluno"))
+    aluno_solict = db.relationship("Alunos", back_populates="solicitacoes_aluno")
+
+    id_tec_solict = db.Column(db.Integer, db.ForeignKey("tecnicos.id_tec"))
+    tec_solict = db.relationship("Tecnicos", back_populates="solicitacoes_tec")
+
+    id_prof_solict = db.Column(db.Integer, db.ForeignKey("professores.id_prof"))
+    prof_solict = db.relationship("Professores", back_populates="solicitacoes_prof")
+
+    id_coor_solict = db.Column(db.Integer, db.ForeignKey("coordenadores.id_coor"))
+    coor_solict = db.relationship("Coordenadores", back_populates="solicitacoes_coor")
+
+    id_dir_solict = db.Column(db.Integer, db.ForeignKey("diretores.id_dir"))
+    dir_solict = db.relationship("Diretores", back_populates="solicitacoes_dir")

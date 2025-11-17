@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!pode_enviar) {
                 input_chat.disabled = true
                 enviar_chat.disabled = true
-                input_chat.placeholder = `Você não possui permissão para mandar mensagem neste canal`
+                input_chat.placeholder = "Você não possui permissão para mandar mensagem neste canal"
             } else {
                 input_chat.disabled = false
                 enviar_chat.disabled = false

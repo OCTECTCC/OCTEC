@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app
+from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -388,6 +388,145 @@ def api_enviar_mensagem():
         "id_aula_msg": msg.id_aula_msg
     }), 201
 
+@views.route("/api/solicitacoes", methods=["GET"])
+@login_required
+def api_solicitacoes():
+    if getattr(current_user, "id_cargo_usuario", None) != 2:
+        return jsonify([]), 403
+    
+    canal = (request.args.get("canal") or "").lower()
+
+    if canal not in ("aluno", "tec", "prof", "coor", "dir"):
+        return jsonify([])
+    
+    etec = getattr(current_user, "etec_tec", None)
+    id_etec = getattr(etec, "id_etec", None)
+
+    if id_etec is None:
+        return jsonify([])
+
+    filtro = []
+
+    if canal == "aluno":
+        filtro = [Solicitacoes.id_aluno_solict.isnot(None), Solicitacoes.id_etec_solict == id_etec]
+    elif canal == "tec":
+        filtro = [Solicitacoes.id_tec_solict.isnot(None), Solicitacoes.id_etec_solict == id_etec]
+    elif canal == "prof":
+        filtro = [Solicitacoes.id_prof_solict.isnot(None), Solicitacoes.id_etec_solict == id_etec]
+    elif canal == "coor":
+        filtro = [Solicitacoes.id_coor_solict.isnot(None), Solicitacoes.id_etec_solict == id_etec]
+    elif canal == "dir":
+        filtro = [Solicitacoes.id_dir_solict.isnot(None), Solicitacoes.id_etec_solict == id_etec]
+
+    solicitacoes = Solicitacoes.query.filter(*filtro).order_by(Solicitacoes.data_hora_solict.asc()).all()
+
+    resultado = []
+
+    for solicitacao in solicitacoes:
+        id_usuario = None
+        nome_usuario = None
+        if solicitacao.aluno_solict:
+            id_usuario = solicitacao.id_aluno_solict
+            nome_usuario = solicitacao.aluno_solict.nome_aluno
+        elif solicitacao.tec_solict:
+            id_usuario = solicitacao.id_tec_solict
+            nome_usuario = solicitacao.tec_solict.nome_tec
+        elif solicitacao.prof_solict:
+            id_usuario = solicitacao.id_prof_solict
+            nome_usuario = solicitacao.prof_solict.nome_prof
+        elif solicitacao.coor_solict:
+            id_usuario = solicitacao.id_coor_solict
+            nome_usuario = solicitacao.coor_solict.nome_coor
+        elif solicitacao.dir_solict:
+            id_usuario = solicitacao.id_dir_solict
+            nome_usuario = solicitacao.dir_solict.nome_dir
+
+        resultado.append({
+            "id_solict": solicitacao.id_solict,
+            "data_hora_solict": converter_fuso_horario(solicitacao.data_hora_solict),
+            "tipo": canal,
+            "id_usuario": id_usuario,
+            "nome_usuario": nome_usuario
+        })
+    
+    return jsonify(resultado)
+
+@views.route("/api/solicitacoes/redefinir", methods=["POST"])
+@login_required
+def api_solicitacoes_redefinir():
+    if getattr(current_user, "id_cargo_usuario", None) != 2:
+        return jsonify({"error": "Permissão negada"}), 403
+    
+    payload = None
+
+    try:
+        payload = request.get_json(silent=True)
+    except Exception:
+        payload = None
+
+    if payload is None:
+        try:
+            payload = request.form.to_dict()
+        except Exception:
+            payload = {}
+    
+    id_solict_bruto = payload.get("id_solict") if isinstance(payload, dict) else None
+    tipo_bruto = payload.get("tipo") or payload.get("tipo_usuario") or payload.get("tipoUsuario") or ""
+
+    try:
+        id_solict = int(id_solict_bruto)
+    except Exception:
+        id_solict = None
+
+    tipo = (str(tipo_bruto).strip().lower() if tipo_bruto is not None else "")
+
+    if not id_solict or not tipo:
+        return jsonify({"error": "Dados incompletos"}), 400
+    
+    solicitacao = Solicitacoes.query.get(id_solict)
+
+    if not solicitacao:
+        return jsonify({"error": "Solicitação não encontrada"}), 404
+
+    etec = getattr(current_user, "etec_tec", None)
+    id_etec = getattr(etec, "id_etec", None)
+
+    if id_etec is None or solicitacao.id_etec_solict != id_etec:
+        return jsonify({"error": "Permissão negada"}), 403
+
+    try:
+        if tipo == "aluno" and solicitacao.aluno_solict:
+            usuario = solicitacao.aluno_solict
+            usuario.senha_aluno = generate_password_hash(usuario.cpf_aluno)
+        elif tipo == "tec" and solicitacao.tec_solict:
+            usuario = solicitacao.tec_solict
+            usuario.senha_tec = generate_password_hash(usuario.cpf_tec)
+        elif tipo == "prof" and solicitacao.prof_solict:
+            usuario = solicitacao.prof_solict
+            usuario.senha_prof = generate_password_hash(usuario.cpf_prof)
+        elif tipo == "coor" and solicitacao.coor_solict:
+            usuario = solicitacao.coor_solict
+            usuario.senha_coor = generate_password_hash(usuario.cpf_coor)
+        elif tipo == "dir" and solicitacao.dir_solict:
+            usuario = solicitacao.dir_solict
+            usuario.senha_dir = generate_password_hash(usuario.cpf_dir)
+        else:
+            return jsonify({"error": "Solicitação inválida para este tipo"}), 400
+
+        db.session.delete(solicitacao)
+        db.session.commit()
+
+        return jsonify({"success": True})
+    except Exception as exception:
+        try:
+            current_app.logget.exception("Erro ao redefinir senha (solicitação id=%s, tipo=%s)", id_solict, tipo)
+        except Exception:
+            current_app.logget.exception("Erro ao redefinir senha (erro ao logar)")
+
+        db.session.rollback()
+
+        return jsonify({"error": "Erro interno ao redefinir senha", "detail": str(exception)}), 500
+
 @views.route("/login", methods=["GET","POST"])
 def login():
     if current_user.is_authenticated:
@@ -536,6 +675,127 @@ def etecs_por_cidade():
         for etec in etecs
     ]
     return jsonify(resultado)
+
+@views.route("/api/solicitacoes/solicitar", methods=["POST"])
+def api_solicitar_redefinicao():
+    payload = request.get_json(force=True, silent=True) or request.form or {}
+
+    tipo_usuario = payload.get("tipo_usuario")
+    etec_usuario = payload.get("etec_usuario")
+    login_usuario = payload.get("login_usuario")
+
+    try:
+        tipo_usuario = int(tipo_usuario)
+    except:
+        return jsonify({"error": "Tipo de usuário inválido"}), 400
+    
+    if tipo_usuario not in (1,2,3,4,5):
+        return jsonify({"error": "Tipo de usuário inválido"}), 400
+    
+    if not etec_usuario or not str(etec_usuario).strip():
+        return jsonify({"error": "Código da ETEC ausente"}), 400
+    
+    if not login_usuario or not str(login_usuario).strip():
+        return jsonify({"error": "Login/RM ausente"}), 400
+    
+    etec = Etecs.query.filter_by(codigo_etec=str(etec_usuario).strip()).first()
+
+    if not etec:
+        return jsonify({"error": "ETEC inexistente"}), 400
+
+    id_etec = etec.id_etec
+
+    usuario = None
+    tipo = None
+
+    try:
+        if tipo_usuario == 1:
+            usuario = Alunos.query.filter_by(rm_aluno=str(login_usuario).strip()).first()
+            
+            if not usuario:
+                return jsonify({"error": "Aluno não encontrado"}), 404
+            if usuario.id_etec_aluno != id_etec:
+                return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+            
+            tipo = "aluno"
+        elif tipo_usuario == 2:
+            usuario = Tecnicos.query.filter_by(login_tec=str(login_usuario).strip()).first()
+            
+            if not usuario:
+                return jsonify({"error": "Aluno não encontrado"}), 404
+            if usuario.id_etec_tec != id_etec:
+                return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+            
+            tipo = "tec"
+        elif tipo_usuario == 3:
+            usuario = Professores.query.filter_by(login_prof=str(login_usuario).strip()).first()
+            
+            if not usuario:
+                return jsonify({"error": "Aluno não encontrado"}), 404
+            if usuario.id_etec_prof != id_etec:
+                return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+            
+            tipo = "prof"
+        elif tipo_usuario == 4:
+            usuario = Coordenadores.query.filter_by(login_coor=str(login_usuario).strip()).first()
+            
+            if not usuario:
+                return jsonify({"error": "Aluno não encontrado"}), 404
+            if usuario.id_etec_coor != id_etec:
+                return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+            
+            tipo = "coor"
+        elif tipo_usuario == 5:
+            usuario = Diretores.query.filter_by(login_dir=str(login_usuario).strip()).first()
+            
+            if not usuario:
+                return jsonify({"error": "Aluno não encontrado"}), 404
+            if usuario.id_etec_dir != id_etec:
+                return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+            
+            tipo = "dir"
+    except Exception:
+        return jsonify({"error": "Erro ao buscar usuário"}), 500
+
+    filtro = { "id_etec_solict": id_etec }
+
+    if tipo == "aluno":
+        filtro["id_aluno_solict"] = usuario.id_aluno
+    elif tipo == "tec":
+        filtro["id_tec_solict"] = usuario.id_tec
+    elif tipo == "prof":
+        filtro["id_prof_solict"] = usuario.id_prof
+    elif tipo == "coor":
+        filtro["id_coor_solict"] = usuario.id_coor
+    elif tipo == "dir":
+        filtro["id_dir_solict"] = usuario.id_dir
+
+    ja_existe = Solicitacoes.query.filter_by(**filtro).first()
+
+    if ja_existe:
+        return jsonify({"error": "Já existe uma solicitação pendente para este usuário"}), 409
+
+    try:
+        nova = Solicitacoes(id_etec_solict=id_etec)
+        if tipo == "aluno":
+            nova.id_aluno_solict = usuario.id_aluno
+        elif tipo == "tec":
+            nova.id_tec_solict = usuario.id_tec
+        elif tipo == "prof":
+            nova.id_prof_solict = usuario.id_prof
+        elif tipo == "coor":
+            nova.id_coor_solict = usuario.id_coor
+        elif tipo == "dir":
+            nova.id_dir_solict = usuario.id_dir
+
+        db.session.add(nova)
+        db.session.commit()
+
+        return jsonify({"success": True, "id_solict": nova.id_solict}), 201
+    except Exception:
+        db.session.rollback()
+
+        return jsonify({"error": "Erro ao criar solicitação"}), 500
 
 @views.route("/logout")
 @login_required
