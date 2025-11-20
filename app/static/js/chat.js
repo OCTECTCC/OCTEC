@@ -153,7 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
         if (tipo_chat === "canal" && descricao_chat_clicado) {
             const emissor_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-emissor")
-            const emissor_canal_desc = descricao_chat_clicado.getAttribute("data-emissor-descricao") || "usuários autorizados"
             const emissor_canal = emissor_canal_str ? parseInt(emissor_canal_str, 10) : Infinity
 
             pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_canal)

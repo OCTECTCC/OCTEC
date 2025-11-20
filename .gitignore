@@ -9,6 +9,5 @@ __pycache__/
 
 # Configurações e bancos locais
 instance/
-migrations/
 *.sqlite3
 populate.py
