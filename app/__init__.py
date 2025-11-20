@@ -20,6 +20,35 @@ def create_app(config_object="app.config.Config"):
     login_manager.login_message = "Por favor, entre para acessar esta página"
     login_manager.login_message_category = "info"
 
+    from .models import Alunos, Tecnicos, Professores, Coordenadores, Diretores
+
+    @login_manager.user_loader
+    def load_user(id_usuario):
+        if not id_usuario:
+            return None
+        
+        tipo_usuario, separador, id_usuario_str = id_usuario.partition("-")
+
+        if not separador:
+            return None
+        
+        try:
+            primary_key = int(id_usuario_str)
+        except ValueError:
+            return None
+
+        if tipo_usuario == "aluno":
+            return Alunos.query.get(primary_key)
+        elif tipo_usuario == "tec":
+            return Tecnicos.query.get(primary_key)
+        elif tipo_usuario == "prof":
+            return Professores.query.get(primary_key)
+        elif tipo_usuario == "coor":
+            return Coordenadores.query.get(primary_key)
+        elif tipo_usuario == "dir":
+            return Diretores.query.get(primary_key)
+        return None
+
     from .views import views
     app.register_blueprint(views)
 

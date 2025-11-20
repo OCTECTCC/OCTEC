@@ -4,7 +4,7 @@ from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 from collections import defaultdict
 from .models import *
-from . import login_manager, db
+from . import db
 
 from datetime import timezone, timedelta
 try:
@@ -15,51 +15,6 @@ except Exception:
     fuso_horario_disponivel = False
 
 views = Blueprint("views", __name__)
-
-@login_manager.user_loader
-def load_user(id_usuario):
-    if not id_usuario:
-        return None
-    
-    if "-" in id_usuario:
-        tipo, id = id_usuario.split("-", 1)
-
-        try:
-            id = int(id)
-        except ValueError:
-            return None
-        
-        if tipo == "aluno":
-            return Alunos.query.get(id)
-        elif tipo == "tec":
-            return Tecnicos.query.get(id)
-        elif tipo == "prof":
-            return Professores.query.get(id)
-        elif tipo == "coor":
-            return Coordenadores.query.get(id)
-        elif tipo == "dir":
-            return Diretores.query.get(id)
-        else:
-            return None
-
-    try:
-        id = int(id_usuario)
-    except ValueError:
-        return None
-
-    usuario = Diretores.query.get(id)
-    if usuario:
-        return usuario
-    usuario = Coordenadores.query.get(id)
-    if usuario:
-        return usuario
-    usuario = Professores.query.get(id)
-    if usuario:
-        return usuario
-    usuario = Tecnicos.query.get(id)
-    if usuario:
-        return usuario
-    return Alunos.query.get(id)
 
 @views.route("/")
 def index():

@@ -1,6 +1,6 @@
 from . import db
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import text
 
 class Cidades(db.Model):
@@ -9,6 +9,9 @@ class Cidades(db.Model):
     nome_cidade = db.Column(db.String(128), nullable=False)
 
     etecs_cidade = db.relationship("Etecs", back_populates="cidade_etec")
+
+    def __repr__(self):
+        return f"<Cidade {self.nome_cidade}>"
 
 class Etecs(db.Model):
     __tablename__ = "etecs"
@@ -27,6 +30,9 @@ class Etecs(db.Model):
     aulas_etec = db.relationship("Aulas", back_populates="etec_aula")
     canais_etec = db.relationship("Canais", back_populates="etec_canal")
     solicitacoes_etec = db.relationship("Solicitacoes", back_populates="etec_solict")
+
+    def __repr__(self):
+        return f"<Etec {self.codigo_etec} - {self.nome_etec}>"
 
 coordenadores_cursos = db.Table(
     "coordenadores_cursos",
@@ -48,12 +54,18 @@ class Cursos(db.Model):
 
     coordenadores_curso = db.relationship("Coordenadores", secondary=coordenadores_cursos, back_populates="cursos_coor")
 
+    def __repr__(self):
+        return f"<Curso {self.sigla_curso}>"
+
 class Materias(db.Model):
     __tablename__ = "materias"
     id_materia = db.Column(db.Integer, primary_key=True, autoincrement=True)
     descricao_materia = db.Column(db.String(128), nullable=False)
 
     aulas_materia = db.relationship("Aulas", back_populates="materia_aula")
+
+    def __repr__(self):
+        return f"<Materia {self.descricao_materia}>"
 
 class Cargos(db.Model):
     __tablename__ = "cargos"
@@ -66,9 +78,12 @@ class Cargos(db.Model):
     coordenadores_cargo = db.relationship("Coordenadores", back_populates="cargo_usuario")
     diretores_cargo = db.relationship("Diretores", back_populates="cargo_usuario")
 
-    leitores_canais_cargo = db.relationship("Canais", back_populates="cargo_leitor_canal", foreign_keys="[Canais.id_cargo_leitor_canal]")
-    emissores_canais_cargo = db.relationship("Canais", back_populates="cargo_emissor_canal", foreign_keys="[Canais.id_cargo_emissor_canal]")
-    moderadores_canais_cargo = db.relationship("Canais", back_populates="cargo_moderador_canal", foreign_keys="[Canais.id_cargo_moderador_canal]")
+    leitores_canais_cargo = db.relationship("Canais", back_populates="cargo_leitor_canal", foreign_keys="Canais.id_cargo_leitor_canal")
+    emissores_canais_cargo = db.relationship("Canais", back_populates="cargo_emissor_canal", foreign_keys="Canais.id_cargo_emissor_canal")
+    moderadores_canais_cargo = db.relationship("Canais", back_populates="cargo_moderador_canal", foreign_keys="Canais.id_cargo_moderador_canal")
+
+    def __repr__(self):
+        return f"<Cargo {self.descricao_cargo}>"
 
 class Alunos(db.Model, UserMixin):
     __tablename__ = "alunos"
@@ -83,7 +98,7 @@ class Alunos(db.Model, UserMixin):
     situacao_aluno = db.Column(db.String(128), nullable=False)
     ano_origem_aluno = db.Column(db.Integer, nullable=False)
     semestre_origem_aluno = db.Column(db.Integer, nullable=False)
-    representante_aluno = db.Column(db.Boolean, nullable=False)
+    representante_aluno = db.Column(db.Boolean, nullable=False, default=False)
 
     id_curso_aluno = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     curso_aluno = db.relationship("Cursos", back_populates="alunos_curso")
@@ -120,8 +135,15 @@ class Alunos(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_aluno
+    
     def get_id(self):
         return f"aluno-{self.id_aluno}"
+    
+    def check_password(self, senha_texto):
+        return check_password_hash(self.senha_aluno, senha_texto)
+
+    def __repr__(self):
+        return f"<Aluno {self.rm_aluno} - {self.nome_aluno}>"
 
 class Tecnicos(db.Model, UserMixin):
     __tablename__ = "tecnicos"
@@ -156,8 +178,15 @@ class Tecnicos(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_tec
+    
     def get_id(self):
         return f"tec-{self.id_tec}"
+    
+    def check_password(self, senha_texto):
+        return check_password_hash(self.senha_tec, senha_texto)
+
+    def __repr__(self):
+        return f"<Tecnico {self.login_tec} - {self.nome_tec}>"
     
 class Professores(db.Model, UserMixin):
     __tablename__ = "professores"
@@ -167,7 +196,7 @@ class Professores(db.Model, UserMixin):
     cpf_prof = db.Column(db.String(11), nullable=False)
     nome_prof = db.Column(db.String(128), nullable=False)
     sexo_prof = db.Column(db.String(1), nullable=False)
-    biblioteca_prof = db.Column(db.Boolean, nullable=False)
+    biblioteca_prof = db.Column(db.Boolean, nullable=False, default=False)
 
     id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_prof = db.relationship("Etecs", back_populates="professores_etec")
@@ -195,8 +224,15 @@ class Professores(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_prof
+    
     def get_id(self):
         return f"prof-{self.id_prof}"
+
+    def check_password(self, senha_texto):
+        return check_password_hash(self.senha_prof, senha_texto)
+
+    def __repr__(self):
+        return f"<Professor {self.login_prof} - {self.nome_prof}>"
 
 class Coordenadores(db.Model, UserMixin):
     __tablename__ = "coordenadores"
@@ -206,8 +242,8 @@ class Coordenadores(db.Model, UserMixin):
     cpf_coor = db.Column(db.String(11), nullable=False)
     nome_coor = db.Column(db.String(128), nullable=False)
     sexo_coor = db.Column(db.String(1), nullable=False)
-    ensino_medio_coor = db.Column(db.Boolean, nullable=False)
-    pedagogico_coor = db.Column(db.Boolean, nullable=False)
+    ensino_medio_coor = db.Column(db.Boolean, nullable=False, default=False)
+    pedagogico_coor = db.Column(db.Boolean, nullable=False, default=False)
 
     id_etec_coor = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_coor = db.relationship("Etecs", back_populates="coordenadores_etec")
@@ -236,8 +272,15 @@ class Coordenadores(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_coor
+    
     def get_id(self):
         return f"coor-{self.id_coor}"
+    
+    def check_password(self, senha_texto):
+        return check_password_hash(self.senha_coor, senha_texto)
+
+    def __repr__(self):
+        return f"<Coordenador {self.login_coor} - {self.nome_coor}>"
 
 class Diretores(db.Model, UserMixin):
     __tablename__ = "diretores"
@@ -272,8 +315,15 @@ class Diretores(db.Model, UserMixin):
     @property
     def id(self):
         return self.id_dir
+    
     def get_id(self):
         return f"dir-{self.id_dir}"
+    
+    def check_password(self, senha_texto):
+        return check_password_hash(self.senha_dir, senha_texto)
+    
+    def __repr__(self):
+        return f"<Diretor {self.login_dir} - {self.nome_dir}>"
 
 class Aulas(db.Model):
     __tablename__ = "aulas"
@@ -297,6 +347,9 @@ class Aulas(db.Model):
 
     mensagens_aula = db.relationship("Mensagens", back_populates="aula_msg")
 
+    def __repr__(self):
+        return f"<Aula {self.id_aula}>"
+
 class Canais(db.Model):
     __tablename__ = "canais"
     id_canal = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -315,6 +368,9 @@ class Canais(db.Model):
     etec_canal = db.relationship("Etecs", back_populates="canais_etec")
 
     mensagens_canal = db.relationship("Mensagens", back_populates="canal_msg")
+
+    def __repr__(self):
+        return f"<Canal {self.descricao_canal}>"
 
 class Mensagens(db.Model):
     __tablename__ = "mensagens"
@@ -343,6 +399,9 @@ class Mensagens(db.Model):
     id_dir_msg = db.Column(db.Integer, db.ForeignKey("diretores.id_dir"))
     dir_msg = db.relationship("Diretores", back_populates="mensagens_dir")
 
+    def __repr__(self):
+        return f"<Mensagem {self.id_msg}>"
+
 class Solicitacoes(db.Model):
     __tablename__ = "solicitacoes"
     id_solict = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -365,3 +424,6 @@ class Solicitacoes(db.Model):
 
     id_dir_solict = db.Column(db.Integer, db.ForeignKey("diretores.id_dir"))
     dir_solict = db.relationship("Diretores", back_populates="solicitacoes_dir")
+
+    def __repr__(self):
+        return f"<Solicitacao {self.id_solict}>"
