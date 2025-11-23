@@ -524,9 +524,9 @@ def login():
         except Exception:
             tipo_usuario = 0
 
-        etec_usuario = request.form.get("etec_usuario")
-        login_usuario = request.form.get("login_usuario")
-        senha_usuario = request.form.get("senha_usuario")
+        etec_usuario = str(request.form.get("etec_usuario", "")).strip()
+        login_usuario = str(request.form.get("login_usuario", "")).strip()
+        senha_usuario = request.form.get("senha_usuario", "") or ""
 
         if not etec_usuario or not login_usuario:
             flash("Preencha ETEC e usuário", "danger")
