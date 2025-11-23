@@ -1,9 +1,11 @@
+import re
 from . import db
 from datetime import timezone, timedelta
 from collections import defaultdict
 from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 from .models import *
 
@@ -907,74 +909,132 @@ def primeiro_acesso():
         session.pop("session_login_usuario", None)
         flash("Acesso não autorizado", "danger")
         return redirect(url_for("views.login"))
+
+    login_usuario = str(login_usuario).strip()
     
     if request.method == "POST":
-        senha_usuario = request.form.get("senha_usuario")
-        confirmar_senha_usuario = request.form.get("confirmar_senha_usuario")
+        senha_usuario = (request.form.get("senha_usuario") or "").strip()
+        confirmar_senha_usuario = (request.form.get("confirmar_senha_usuario") or "").strip()
 
         if senha_usuario != confirmar_senha_usuario:
             flash("As senhas não coincidem", "danger")
             return redirect(url_for("views.primeiro_acesso"))
+        
+        if len(senha_usuario) < 6 or not re.search(r"[A-Za-z]", senha_usuario) or not re.search(r"\d", senha_usuario):
+            flash("Senha inválida: mínimo 6 caracteres, incluindo letras e números", "danger")
+            return redirect(url_for("views.primeiro_acesso"))
+        
+        def erro():
+            session.pop("session_tipo_usuario", None)
+            session.pop("session_login_usuario", None)
+            flash("Erro ao processar primeiro acesso", "danger")
+            return redirect(url_for("views.login"))
 
-        if tipo_usuario == 1:
-            aluno = Alunos.query.filter_by(rm_aluno=login_usuario).first()
+        try:
+            if tipo_usuario == 1:
+                usuario = Alunos.query.filter_by(rm_aluno=login_usuario).first()
+                cpf_usuario = usuario.cpf_aluno if usuario else None
+                validacao_senha = getattr(usuario, "check_password", None)
+                cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
 
-            if not aluno:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
+                if not usuario:
+                    return erro()
+
+                if not cpf_valido:
+                    session.pop("session_tipo_usuario", None)
+                    session.pop("session_login_usuario", None)
+                    flash("Primeiro acesso inválido ou já realizado", "danger")
+                    return redirect(url_for("views.login"))
+
+                usuario.senha_aluno = generate_password_hash(senha_usuario)
+            elif tipo_usuario == 2:
+                usuario = Tecnicos.query.filter_by(login_tec=login_usuario).first()
+                cpf_usuario = usuario.cpf_aluno if usuario else None
+                validacao_senha = getattr(usuario, "check_password", None)
+                cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
+
+                if not usuario:
+                    return erro()
+
+                if not cpf_valido:
+                    session.pop("session_tipo_usuario", None)
+                    session.pop("session_login_usuario", None)
+                    flash("Primeiro acesso inválido ou já realizado", "danger")
+                    return redirect(url_for("views.login"))
+                
+                usuario.senha_tec = generate_password_hash(senha_usuario)
+            elif tipo_usuario == 3:
+                usuario = Professores.query.filter_by(login_prof=login_usuario).first()
+                cpf_usuario = usuario.cpf_aluno if usuario else None
+                validacao_senha = getattr(usuario, "check_password", None)
+                cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
+
+                if not usuario:
+                    return erro()
+
+                if not cpf_valido:
+                    session.pop("session_tipo_usuario", None)
+                    session.pop("session_login_usuario", None)
+                    flash("Primeiro acesso inválido ou já realizado", "danger")
+                    return redirect(url_for("views.login"))
+
+                usuario.senha_prof = generate_password_hash(senha_usuario)
+            elif tipo_usuario == 4:
+                usuario = Coordenadores.query.filter_by(login_coor=login_usuario).first()
+                cpf_usuario = usuario.cpf_aluno if usuario else None
+                validacao_senha = getattr(usuario, "check_password", None)
+                cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
+
+                if not usuario:
+                    return erro()
+
+                if not cpf_valido:
+                    session.pop("session_tipo_usuario", None)
+                    session.pop("session_login_usuario", None)
+                    flash("Primeiro acesso inválido ou já realizado", "danger")
+                    return redirect(url_for("views.login"))
+                
+                usuario.senha_coor = generate_password_hash(senha_usuario)
+            elif tipo_usuario == 5:
+                usuario = Diretores.query.filter_by(login_dir=login_usuario).first()
+                cpf_usuario = usuario.cpf_aluno if usuario else None
+                validacao_senha = getattr(usuario, "check_password", None)
+                cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
+
+                if not usuario:
+                    return erro()
+
+                if not cpf_valido:
+                    session.pop("session_tipo_usuario", None)
+                    session.pop("session_login_usuario", None)
+                    flash("Primeiro acesso inválido ou já realizado", "danger")
+                    return redirect(url_for("views.login"))
+
+                usuario.senha_dir = generate_password_hash(senha_usuario)
+            else:
+                flash("Tipo de usuário inválido", "danger")
                 return redirect(url_for("views.login"))
+            
+            try:
+                db.session.commit()
+            except SQLAlchemyError as error:
+                db.session.rollback()
+                current_app.logger.exception("Erro ao gravar nova senha no primeiro acesso: %s", error)
+                return erro()
 
-            aluno.senha_aluno = generate_password_hash(senha_usuario)
-            db.session.commit()
-        elif tipo_usuario == 2:
-            tecnico = Tecnicos.query.filter_by(login_tec=login_usuario).first()
+            session.pop("session_tipo_usuario", None)
+            session.pop("session_login_usuario", None)
 
-            if not tecnico:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
+            try:
+                login_user(usuario)
+            except Exception:
+                flash("Senha redefinida com sucesso! Faça login", "success")
                 return redirect(url_for("views.login"))
-
-            tecnico.senha_tec = generate_password_hash(senha_usuario)
-            db.session.commit()
-        elif tipo_usuario == 3:
-            professor = Professores.query.filter_by(login_prof=login_usuario).first()
-
-            if not professor:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
-                return redirect(url_for("views.login"))
-
-            professor.senha_prof = generate_password_hash(senha_usuario)
-            db.session.commit()
-        elif tipo_usuario == 4:
-            coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
-
-            if not coordenador:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
-                return redirect(url_for("views.login"))
-
-            coordenador.senha_coor = generate_password_hash(senha_usuario)
-            db.session.commit()
-        elif tipo_usuario == 5:
-            diretor = Diretores.query.filter_by(login_dir=login_usuario).first()
-
-            if not diretor:
-                session.pop("session_tipo_usuario", None)
-                session.pop("session_login_usuario", None)
-                flash("Erro", "danger")
-                return redirect(url_for("views.login"))
-
-            diretor.senha_dir = generate_password_hash(senha_usuario)
-            db.session.commit()
-
-        session.pop("session_tipo_usuario", None)
-        session.pop("session_login_usuario", None)
-        flash("Senha redefinida com sucesso!", "success")
-        return redirect(url_for("views.login"))
+            
+            flash("Senha redefinida com sucesso!", "success")
+            return redirect(url_for("views.index"))
+        except Exception as exception:
+            current_app.logger.exception("Erro inesperado em primeiro_acesso: %s", exception)
+            return erro()
 
     return render_template("primeiro_acesso.html", login_usuario=login_usuario)
