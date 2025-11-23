@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const mensagens_chat = document.getElementById("mensagens_chat")
+
+    if (!mensagens_chat) return
+
     let chat_selecionado = { tipo_chat: null, id_chat: null, descricao_chat: null }
     let timer = null
     let descricao_chat_selecionado = null
@@ -6,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const limite_scroll_automatico = 50 
 
-    const mensagens_chat = document.getElementById("mensagens_chat")
     const input_chat = document.getElementById("input_chat")
     const enviar_chat = document.getElementById("enviar_chat")
     const form_chat = document.getElementById("form_chat")
@@ -27,25 +30,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function converter_usuario_atual(usuario_atual_bruto) {
         if (!usuario_atual_bruto) return { tipo_usuario: null, id_usuario: null }
+
         if (usuario_atual_bruto.includes("-")) {
             const [tipo_usuario, id_usuario] = usuario_atual_bruto.split("-", 2)
             return { tipo_usuario: String(tipo_usuario), id_usuario: String(id_usuario) }
         }
+
         return { tipo_usuario: null, id_usuario: String(usuario_atual_bruto) }
     }
     const usuario_atual = converter_usuario_atual(usuario_atual_bruto)
 
     function mensagem_usuario_atual(emissor_msg) {
         if (!emissor_msg) return false
+
         const tipo_emissor = emissor_msg.tipo_usuario ? String (emissor_msg.tipo_usuario) : null
         const id_emissor = (emissor_msg.id_usuario !== undefined && emissor_msg.id_usuario !== null) ? String(emissor_msg.id_usuario) : null
 
         if (usuario_atual.tipo_usuario) {
             return tipo_emissor === usuario_atual.tipo_usuario && id_emissor === usuario_atual.id_usuario
         }
+
         if (usuario_atual.id_usuario) {
             return id_emissor === usuario_atual.id_usuario
         }
+
         return false
     }
 
@@ -66,12 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", ajustar_altura)
 
-    if (mensagens_chat) {
-        mensagens_chat.addEventListener("scroll", () => {
-            const proximo_baixo = (mensagens_chat.scrollTop + mensagens_chat.clientHeight) >= (mensagens_chat.scrollHeight - limite_scroll_automatico)
-            scroll_automatico = proximo_baixo
-        }, { passive: true })
-    }
+    mensagens_chat.addEventListener("scroll", () => {
+        const proximo_baixo = (mensagens_chat.scrollTop + mensagens_chat.clientHeight) >= (mensagens_chat.scrollHeight - limite_scroll_automatico)
+        scroll_automatico = proximo_baixo
+    }, { passive: true })
 
     function limpar_selecao() {
         chat_selecionado = { tipo_chat: null, id_chat: null, descricao_chat: null }
@@ -82,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (chat_header) chat_header.classList.add("d-none")
+
         if (chat_form) chat_form.classList.add("d-none")
 
         if (titulo_chat) titulo_chat.textContent = ""
@@ -145,6 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (chat_header) chat_header.classList.remove("d-none")
+
         if (chat_form) chat_form.classList.remove("d-none")
 
         titulo_chat.textContent = descricao_chat
@@ -153,26 +161,47 @@ document.addEventListener("DOMContentLoaded", () => {
     
         if (tipo_chat === "canal" && descricao_chat_clicado) {
             const emissor_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-emissor")
-            const emissor_canal = emissor_canal_str ? parseInt(emissor_canal_str, 10) : Infinity
+            const moderador_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-moderador")
 
-            pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_canal)
+            let emissor_cargo = null
+            let moderador_cargo = null
+
+            if (emissor_canal_str) emissor_cargo = parseInt(emissor_canal_str, 10)
+
+            if (emissor_cargo !== null) {
+                pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_cargo)
+            } else {
+                pode_enviar = true
+            }
+
+            if (!pode_enviar && moderador_cargo !== null && cargo_usuario === moderador_cargo) {
+                pode_enviar = true
+            }
 
             if (!pode_enviar) {
-                input_chat.disabled = true
-                enviar_chat.disabled = true
-                input_chat.placeholder = "Você não possui permissão para mandar mensagem neste canal"
+                if (input_chat) {
+                    input_chat.disabled = true
+                    input_chat.placeholder = "Você não possui permissão para mandar mensagem neste canal"
+                }
+
+                if (enviar_chat) enviar_chat.disabled = true
             } else {
-                input_chat.disabled = false
-                enviar_chat.disabled = false
-                resetar_placeholder()
+                if (input_chat) {
+                    input_chat.disabled = false
+                    resetar_placeholder()
+                }
+                
+                if (enviar_chat) enviar_chat.disabled = false
             }
         } else {
-            input_chat.disabled = false
-            enviar_chat.disabled = false
+            if (input_chat) input_chat.disabled = false
+
+            if (enviar_chat) enviar_chat.disabled = false
+
             resetar_placeholder()
         }
 
-        if (!input_chat.disabled) input_chat.focus()
+        if (input_chat && !input_chat.disabled) input_chat.focus()
 
         scroll_automatico = true
 
@@ -185,10 +214,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function carregar_mensagens() {
         if (!chat_selecionado.tipo_chat || !chat_selecionado.id_chat) return
+
         try {
             const busca = await fetch(`/api/mensagens?tipo_chat=${chat_selecionado.tipo_chat}&id_chat=${chat_selecionado.id_chat}`)
-            if (!busca.ok) return
+            
+            if (!busca.ok) {
+                console.error("Erro ao buscar mensagens:", busca.status)
+                return
+            }
+
             const mensagens = await busca.json()
+
             exibir_mensagens(mensagens)
         } catch (erro) {
             console.error("Erro ao buscar mensagens:", erro)
@@ -263,24 +299,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    form_chat.addEventListener("submit", async (evento) => {
-        evento.preventDefault()
-        await enviar_mensagem()
-    })
-
-    input_chat.addEventListener("keydown", async (evento) => {
-        if (evento.key === "Enter" && !evento.shiftKey) {
+    if (form_chat) {
+        form_chat.addEventListener("submit", async (evento) => {
             evento.preventDefault()
             await enviar_mensagem()
-        }
-    })
+        })
+    }
+
+    if (input_chat) {
+        input_chat.addEventListener("keydown", async (evento) => {
+            if (evento.key === "Enter" && !evento.shiftKey) {
+                evento.preventDefault()
+                await enviar_mensagem()
+            }
+        })
+    }
 
     async function enviar_mensagem() {
+        if (!input_chat) return
+
         const texto_msg = input_chat.value.trim()
 
         if (!texto_msg || !chat_selecionado.tipo_chat || !chat_selecionado.id_chat) return
 
-        enviar_chat.disabled = true
+        if (enviar_chat) enviar_chat.disabled = true
 
         try {
             const busca = await fetch("/api/mensagens/enviar", {
@@ -299,6 +341,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (erro) {
             console.error("Erro ao enviar:", erro)
+        } finally {
+            if (enviar_chat) enviar_chat.disabled = false
+
+            if (input_chat) input_chat.focus()
         }
 
         enviar_chat.disabled = false
@@ -306,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function formatarHTML(texto_msg) {
-        return texto_msg
+        return String(texto_msg || "")
             .replaceAll("&", "&amp;")
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")

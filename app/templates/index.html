@@ -44,7 +44,7 @@
                                                 <div class="list-group list-group-flush">
                                                     {% for canal in canais %}
                                                         {% if current_user.id_cargo_usuario >= canal.id_cargo_leitor_canal %}
-                                                            <a class="list-group-item list-group-item-action" href="#" data-canal="{{ canal.id_canal }}" data-descricao-canal="{{ canal.descricao_canal }}" data-id-cargo-emissor="{{ canal.id_cargo_emissor_canal }}" data-emissor-descricao="{{ canal.cargo_emissor_canal.descricao_cargo }}">
+                                                            <a class="list-group-item list-group-item-action" href="#" data-canal="{{ canal.id_canal }}" data-descricao-canal="{{ canal.descricao_canal }}" data-id-cargo-emissor="{{ canal.id_cargo_emissor_canal }}" data-emissor-descricao="{{ canal.cargo_emissor_canal.descricao_cargo }}" data-id-cargo-moderador="{{ canal.id_cargo_moderador_canal }}" data-id-cargo-leitor="{{ canal.id_cargo_leitor_canal }}">
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <div class="py-1">{{ canal.descricao_canal }}</div>
                                                                     <small class="text-muted"></small>

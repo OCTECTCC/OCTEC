@@ -9,12 +9,12 @@ function atualizar_altura_header() {
 window.addEventListener("load", atualizar_altura_header, { once: true})
 window.addEventListener("resize", atualizar_altura_header)
 
-if (window.ResizeObserver && altura) {
-    new ResizeObserver(atualizar_altura_header).observe(altura)
+if (window.ResizeObserver && header) {
+    new ResizeObserver(atualizar_altura_header).observe(header)
 }
-else if (altura && window.MutationObserver) {
+else if (header && window.MutationObserver) {
     const mudanca = new MutationObserver(atualizar_altura_header)
-    mudanca.observe(altura, { childList: true, subtree: true, attributes: true })
+    mudanca.observe(header, { childList: true, subtree: true, attributes: true })
     setTimeout(atualizar_altura_header, 100)
 }
 

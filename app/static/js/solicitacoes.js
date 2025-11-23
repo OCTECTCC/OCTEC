@@ -1,5 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
         const solicitacoes_canal = document.getElementById("mensagens_chat")
+
+        if (!solicitacoes_canal) return
+
+        const cargo_usuario = solicitacoes_canal.dataset.cargoUsuario ? parseInt(solicitacoes_canal.dataset.cargoUsuario, 10) : null
+
+        if (cargo_usuario !== 2) {
+                solicitacoes_canal.className = "d-flex justify-content-center align-items-center position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
+                solicitacoes_canal.innerText = "Selecione um canal"
+                return
+        }
+
         const canal_header = document.getElementById("chat_header")
         const canal_form = document.getElementById("chat_form")
         const titulo_canal = document.getElementById("titulo_chat")
@@ -9,12 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function limpar_canal() {
                 if (canal_header) canal_header.classList.add("d-none")
+
                 if (canal_form) canal_form.classList.add("d-none")
+
                 if (titulo_canal) titulo_canal.textContent = ""
+
                 if (solicitacoes_canal) {
                         solicitacoes_canal.className = "d-flex justify-content-center align-items-center position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
                         solicitacoes_canal.innerText = "Selecione uma categoria de solicitações"
                 }
+                
                 if (descricao_canal_selecionado) {
                         descricao_canal_selecionado.classList.remove("text-danger", "fw-bold")
                         descricao_canal_selecionado = null

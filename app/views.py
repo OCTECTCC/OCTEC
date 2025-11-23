@@ -20,7 +20,7 @@ views = Blueprint("views", __name__)
 def index():
     canais = []
     aulas = None
-    aulas_por_sala = None
+    aulas_por_sala = []
 
     if current_user.is_authenticated:
         tipo_usuario = getattr(current_user, "id_cargo_usuario", None)
@@ -98,6 +98,8 @@ def index():
                     descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
                 
                 grupos_aulas[descricao_aula].append(aula)
+
+            aulas_por_sala = sorted(grupos_aulas.items(), key=lambda x: x[0])
 
         elif tipo_usuario == 4:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_coor.id_etec).order_by(Canais.descricao_canal).all()
@@ -293,9 +295,25 @@ def api_enviar_mensagem():
         except Exception:
             cargo_usuario = None
         
-        cargos_permitidos = {canal.id_cargo_emissor_canal, canal.id_cargo_moderador_canal}
+        cargo_emissor = getattr(canal, "id_cargo_emissor_canal", None)
+        cargo_moderador = getattr(canal, "id_cargo_moderador_canal", None)
 
-        if cargo_usuario is None or cargo_usuario not in cargos_permitidos:
+        permitido = False
+
+        try:
+            if cargo_usuario is None:
+                permitido = False
+            else:
+                if cargo_emissor is not None and cargo_usuario >= cargo_emissor:
+                    permitido = True
+                elif cargo_moderador is not None and cargo_usuario == cargo_moderador:
+                    permitido = True
+                else:
+                    permitido = False
+        except Exception:
+            permitido = False
+
+        if not permitido:
             return jsonify({"error": "Você não tem permissão para enviar mensagens neste canal"}), 403
 
     elif tipo_chat == "aula":
