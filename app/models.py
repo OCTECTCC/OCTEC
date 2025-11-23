@@ -1,7 +1,7 @@
 from . import db
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import text
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Cidades(db.Model):
     __tablename__ = "cidades"

@@ -1,12 +1,12 @@
+from . import db
+from datetime import timezone, timedelta
+from collections import defaultdict
 from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
-from collections import defaultdict
 from .models import *
-from . import db
 
-from datetime import timezone, timedelta
 try:
     from zoneinfo import ZoneInfo
     fuso_horario_disponivel = True
@@ -18,13 +18,17 @@ views = Blueprint("views", __name__)
 
 @views.route("/")
 def index():
+    canais = []
+    aulas = None
+    aulas_por_sala = None
+
     if current_user.is_authenticated:
-        tipo_usuario = current_user.id_cargo_usuario
+        tipo_usuario = getattr(current_user, "id_cargo_usuario", None)
 
         if tipo_usuario == 1:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_aluno.id_etec).order_by(Canais.descricao_canal).all()
 
-            if current_user.situacao_aluno == "CURSANDO":
+            if getattr(current_user, "situacao_aluno", None) == "CURSANDO":
                 filtro_aulas = [
                     Aulas.modulo_aula == current_user.modulo_aluno,
                     Aulas.turma_aula.like(f"%{current_user.turma_aluno}%"),
@@ -32,30 +36,37 @@ def index():
                     Aulas.id_etec_aula == current_user.id_etec_aluno
                 ]                
 
-                if current_user.curso_aluno.ensino_medio_integrado_curso == True:
-                    if current_user.modulo_aluno in (1, 2):
-                        ano_aula = current_user.ano_origem_aluno
-                    elif current_user.modulo_aluno in (3, 4):
-                        ano_aula = current_user.ano_origem_aluno + 1
-                    elif current_user.modulo_aluno in (5, 6):
-                        ano_aula = current_user.ano_origem_aluno + 2
-                elif current_user.curso_aluno.ensino_medio_integrado_curso == False:
-                    if current_user.semestre_origem_aluno == 1:
+                ano_aula = None
+
+                try:
+                    if current_user.curso_aluno.ensino_medio_integrado_curso:
                         if current_user.modulo_aluno in (1, 2):
                             ano_aula = current_user.ano_origem_aluno
                         elif current_user.modulo_aluno in (3, 4):
                             ano_aula = current_user.ano_origem_aluno + 1
-                    elif current_user.semestre_origem_aluno == 2:
-                        if current_user.modulo_aluno == 1:
-                            ano_aula = current_user.ano_origem_aluno
-                        elif current_user.modulo_aluno in (2, 3):
-                            ano_aula = current_user.ano_origem_aluno + 1
-                        elif current_user.modulo_aluno == 4:
+                        elif current_user.modulo_aluno in (5, 6):
                             ano_aula = current_user.ano_origem_aluno + 2
+                    else:
+                        if current_user.semestre_origem_aluno == 1:
+                            if current_user.modulo_aluno in (1, 2):
+                                ano_aula = current_user.ano_origem_aluno
+                            elif current_user.modulo_aluno in (3, 4):
+                                ano_aula = current_user.ano_origem_aluno + 1
+                        elif current_user.semestre_origem_aluno == 2:
+                            if current_user.modulo_aluno == 1:
+                                ano_aula = current_user.ano_origem_aluno
+                            elif current_user.modulo_aluno in (2, 3):
+                                ano_aula = current_user.ano_origem_aluno + 1
+                            elif current_user.modulo_aluno == 4:
+                                ano_aula = current_user.ano_origem_aluno + 2
+                except Exception:
+                    ano_aula = None
 
-                filtro_aulas.append(Aulas.ano_aula == ano_aula)
-                aulas = Aulas.query.filter(*filtro_aulas).all()
-                aulas_por_sala = None
+                if ano_aula is not None:
+                    filtro_aulas.append(Aulas.ano_aula == ano_aula)
+                    aulas = Aulas.query.filter(*filtro_aulas).all()
+                else:
+                    aulas = []
 
         elif tipo_usuario == 2:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_tec.id_etec).order_by(Canais.descricao_canal).all()
@@ -73,21 +84,20 @@ def index():
             grupos_aulas = defaultdict(list)
 
             for aula in aulas:
-                if aula.curso_aula.ensino_medio_integrado_curso == True:
-                    if aula.modulo_aula in (1,2):
+                if aula.curso_aula.ensino_medio_integrado_curso:
+                    if aula.modulo_aula in (1, 2):
                         serie_modulo = "1º"
-                    elif aula.modulo_aula in (3,4):
+                    elif aula.modulo_aula in (3, 4):
                         serie_modulo = "2º"
-                    elif aula.modulo_aula in (5,6):
+                    elif aula.modulo_aula in (5, 6):
                         serie_modulo = "3º"
+
                     descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
-                elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                else:
                     serie_modulo = f"{aula.modulo_aula}º MÓD."
                     descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
                 
                 grupos_aulas[descricao_aula].append(aula)
-
-            aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
 
         elif tipo_usuario == 4:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_coor.id_etec).order_by(Canais.descricao_canal).all()
@@ -98,15 +108,16 @@ def index():
 
             grupos_aulas = defaultdict(list)
 
-            if current_user.pedagogico_coor == True:
+            if getattr(current_user, "pedagogico_coor", False):
                 for aula in aulas:
-                    if aula.curso_aula.ensino_medio_integrado_curso == True:
-                        if aula.modulo_aula in (1,2):
+                    if aula.curso_aula.ensino_medio_integrado_curso:
+                        if aula.modulo_aula in (1, 2):
                             serie_modulo = "1º"
-                        elif aula.modulo_aula in (3,4):
+                        elif aula.modulo_aula in (3, 4):
                             serie_modulo = "2º"
-                        elif aula.modulo_aula in (5,6):
+                        elif aula.modulo_aula in (5, 6):
                             serie_modulo = "3º"
+
                         descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
                     elif aula.curso_aula.ensino_medio_integrado_curso == False:
                         serie_modulo = f"{aula.modulo_aula}º MÓD."
@@ -114,18 +125,19 @@ def index():
                     
                     grupos_aulas[descricao_aula].append(aula)
             else:
-                if current_user.ensino_medio_coor == True:
+                if getattr(current_user, "ensino_medio_coor", False):
                     for aula in aulas:
                         if aula.turma_aula == "AB":
-                            if aula.curso_aula.ensino_medio_integrado_curso == True:
-                                if aula.modulo_aula in (1,2):
+                            if aula.curso_aula.ensino_medio_integrado_curso:
+                                if aula.modulo_aula in (1, 2):
                                     serie_modulo = "1º"
-                                elif aula.modulo_aula in (3,4):
+                                elif aula.modulo_aula in (3, 4):
                                     serie_modulo = "2º"
-                                elif aula.modulo_aula in (5,6):
+                                elif aula.modulo_aula in (5, 6):
                                     serie_modulo = "3º"
+                                    
                                 descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
-                            elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                            else:
                                 serie_modulo = f"{aula.modulo_aula}º MÓD."
                                 descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
                             
@@ -134,21 +146,22 @@ def index():
                 for aula in aulas:
                     for curso in current_user.cursos_coor:
                         if aula.id_curso_aula == curso.id_curso and aula.turma_aula != "AB":
-                            if aula.curso_aula.ensino_medio_integrado_curso == True:
-                                if aula.modulo_aula in (1,2):
+                            if aula.curso_aula.ensino_medio_integrado_curso:
+                                if aula.modulo_aula in (1, 2):
                                     serie_modulo = "1º"
-                                elif aula.modulo_aula in (3,4):
+                                elif aula.modulo_aula in (3, 4):
                                     serie_modulo = "2º"
-                                elif aula.modulo_aula in (5,6):
+                                elif aula.modulo_aula in (5, 6):
                                     serie_modulo = "3º"
+
                                 descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
-                            elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                            else:
                                 serie_modulo = f"{aula.modulo_aula}º MÓD."
                                 descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
 
                             grupos_aulas[descricao_aula].append(aula)
 
-            aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
+            aulas_por_sala = sorted(grupos_aulas.items(), key=lambda x: x[0])
 
         elif tipo_usuario == 5:
             canais = Canais.query.filter_by(id_etec_canal=current_user.etec_dir.id_etec).order_by(Canais.descricao_canal).all()
@@ -160,21 +173,22 @@ def index():
             grupos_aulas = defaultdict(list)
 
             for aula in aulas:
-                if aula.curso_aula.ensino_medio_integrado_curso == True:
-                    if aula.modulo_aula in (1,2):
+                if aula.curso_aula.ensino_medio_integrado_curso:
+                    if aula.modulo_aula in (1, 2):
                         serie_modulo = "1º"
-                    elif aula.modulo_aula in (3,4):
+                    elif aula.modulo_aula in (3, 4):
                         serie_modulo = "2º"
-                    elif aula.modulo_aula in (5,6):
+                    elif aula.modulo_aula in (5, 6):
                         serie_modulo = "3º"
+
                     descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula}"
-                elif aula.curso_aula.ensino_medio_integrado_curso == False:
+                else:
                     serie_modulo = f"{aula.modulo_aula}º MÓD."
                     descricao_aula = f"{serie_modulo} {aula.curso_aula.sigla_curso} {aula.ano_aula} {aula.semestre_aula}º SEM."
                 
                 grupos_aulas[descricao_aula].append(aula)
 
-            aulas_por_sala = sorted(grupos_aulas.items(), key = lambda x: x[0])
+            aulas_por_sala = sorted(grupos_aulas.items(), key=lambda x: x[0])
 
         return render_template("index.html", canais=canais, aulas=aulas, aulas_por_sala=aulas_por_sala)
         
@@ -193,6 +207,7 @@ def converter_fuso_horario(data_hora, fuso_horario="America/Sao_Paulo"):
             zona = ZoneInfo(fuso_horario)
         else:
             zona = timezone(timedelta(hours=-3))
+
         return data_hora.astimezone(zona).isoformat()
     except Exception:
         return data_hora.isoformat()
@@ -220,6 +235,8 @@ def api_mensagens():
 
         if msg.aluno_msg:
             emissor_msg = {"tipo_usuario": "aluno", "id_usuario": msg.id_aluno_msg, "nome_usuario": msg.aluno_msg.nome_aluno}
+        elif msg.tec_msg:
+            emissor_msg = {"tipo_usuario": "tec", "id_usuario": msg.id_tec_msg, "nome_usuario": msg.tec_msg.nome_tec}
         elif msg.prof_msg:
             emissor_msg = {"tipo_usuario": "prof", "id_usuario": msg.id_prof_msg, "nome_usuario": msg.prof_msg.nome_prof}
         elif msg.coor_msg:
@@ -241,7 +258,7 @@ def api_mensagens():
 @views.route("/api/mensagens/enviar", methods=["POST"])
 @login_required
 def api_enviar_mensagem():
-    payload = request.get_json(force=True, silent=True) or request.form
+    payload = request.get_json(silent=True) or request.form or {}
     texto_msg = payload.get("texto_msg")
     tipo_chat = payload.get("tipo_chat")
     id_chat = payload.get("id_chat")
@@ -249,23 +266,23 @@ def api_enviar_mensagem():
     if not texto_msg or not tipo_chat or not id_chat:
         return jsonify({"error": "Dados incompletos"}), 400
     
-    texto_msg = texto_msg.strip()
+    texto_msg = str(texto_msg).strip()
 
     if len(texto_msg) == 0:
         return jsonify({"error": "Mensagem vazia"}), 400
+    
     if len(texto_msg) > 200:
         return jsonify({"error": "Mensagem muito longa (máximo de 200 caracteres)"}), 400
-
-    msg = Mensagens(texto_msg=texto_msg)
 
     try:
         id_chat = int(id_chat)
     except (TypeError, ValueError):
         return jsonify({"error": "ID inválido"}), 400
     
+    msg = Mensagens(texto_msg=texto_msg)
+    
     if tipo_chat == "canal":
         msg.id_canal_msg = id_chat
-
         canal = Canais.query.get(id_chat)
 
         if not canal:
@@ -276,7 +293,9 @@ def api_enviar_mensagem():
         except Exception:
             cargo_usuario = None
         
-        if cargo_usuario is None or cargo_usuario < canal.id_cargo_emissor_canal:
+        cargos_permitidos = {canal.id_cargo_emissor_canal, canal.id_cargo_moderador_canal}
+
+        if cargo_usuario is None or cargo_usuario not in cargos_permitidos:
             return jsonify({"error": "Você não tem permissão para enviar mensagens neste canal"}), 403
 
     elif tipo_chat == "aula":
@@ -289,14 +308,16 @@ def api_enviar_mensagem():
     id_usuario = None
 
     if id_usuario_str and "-" in id_usuario_str:
-        tipo_usuario, id_usuario = id_usuario_str.split("-", 1)
+        tipo_usuario, id_usuario_bruto = id_usuario_str.split("-", 1)
         try:
-            id_usuario = int(id_usuario)
+            id_usuario = int(id_usuario_bruto)
         except:
             id_usuario = None
     else:
         if hasattr(current_user, "id_aluno"):
             tipo_usuario, id_usuario = "aluno", getattr(current_user, "id_aluno")
+        elif hasattr(current_user, "id_tec"):
+            tipo_usuario, id_usuario = "tec", getattr(current_user, "id_tec")
         elif hasattr(current_user, "id_prof"):
             tipo_usuario, id_usuario = "prof", getattr(current_user, "id_prof")
         elif hasattr(current_user, "id_coor"):
@@ -306,6 +327,8 @@ def api_enviar_mensagem():
     
     if tipo_usuario == "aluno":
         msg.id_aluno_msg = id_usuario
+    elif tipo_usuario == "tec":
+        msg.id_tec_msg = id_usuario
     elif tipo_usuario == "prof":
         msg.id_prof_msg = id_usuario
     elif tipo_usuario == "coor":
@@ -326,6 +349,8 @@ def api_enviar_mensagem():
 
     if tipo_usuario == "aluno":
         emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno if msg.aluno_msg else None
+    elif tipo_usuario == "tec":
+        emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec if msg.tec_msg else None
     elif tipo_usuario == "prof":
         emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof if msg.prof_msg else None
     elif tipo_usuario == "coor":
@@ -380,6 +405,7 @@ def api_solicitacoes():
     for solicitacao in solicitacoes:
         id_usuario = None
         nome_usuario = None
+
         if solicitacao.aluno_solict:
             id_usuario = solicitacao.id_aluno_solict
             nome_usuario = solicitacao.aluno_solict.nome_aluno
@@ -412,20 +438,8 @@ def api_solicitacoes_redefinir():
     if getattr(current_user, "id_cargo_usuario", None) != 2:
         return jsonify({"error": "Permissão negada"}), 403
     
-    payload = None
-
-    try:
-        payload = request.get_json(silent=True)
-    except Exception:
-        payload = None
-
-    if payload is None:
-        try:
-            payload = request.form.to_dict()
-        except Exception:
-            payload = {}
-    
-    id_solict_bruto = payload.get("id_solict") if isinstance(payload, dict) else None
+    payload = request.get_json(silent=True) or request.form.to_dict() or {}
+    id_solict_bruto = payload.get("id_solict")
     tipo_bruto = payload.get("tipo") or payload.get("tipo_usuario") or payload.get("tipoUsuario") or ""
 
     try:
@@ -437,7 +451,7 @@ def api_solicitacoes_redefinir():
 
     if not id_solict or not tipo:
         return jsonify({"error": "Dados incompletos"}), 400
-    
+
     solicitacao = Solicitacoes.query.get(id_solict)
 
     if not solicitacao:
@@ -473,13 +487,8 @@ def api_solicitacoes_redefinir():
 
         return jsonify({"success": True})
     except Exception as exception:
-        try:
-            current_app.logget.exception("Erro ao redefinir senha (solicitação id=%s, tipo=%s)", id_solict, tipo)
-        except Exception:
-            current_app.logget.exception("Erro ao redefinir senha (erro ao logar)")
-
+        current_app.logger.exception("Erro ao redefinir senha (solicitação id=%s, tipo=%s): %s", id_solict, tipo, str(exception))
         db.session.rollback()
-
         return jsonify({"error": "Erro interno ao redefinir senha", "detail": str(exception)}), 500
 
 @views.route("/login", methods=["GET","POST"])
@@ -492,10 +501,18 @@ def login():
     cargos = Cargos.query.order_by(Cargos.id_cargo).all()
 
     if request.method == "POST":
-        tipo_usuario = int(request.form.get("tipo_usuario"))
+        try:
+            tipo_usuario = int(request.form.get("tipo_usuario", 0))
+        except Exception:
+            tipo_usuario = 0
+
         etec_usuario = request.form.get("etec_usuario")
         login_usuario = request.form.get("login_usuario")
         senha_usuario = request.form.get("senha_usuario")
+
+        if not etec_usuario or not login_usuario:
+            flash("Preencha ETEC e usuário", "danger")
+            return redirect(url_for("views.login"))
 
         etec = Etecs.query.filter_by(codigo_etec=etec_usuario).first()
 
@@ -503,110 +520,137 @@ def login():
             flash("ETEC inexistente", "danger")
             return redirect(url_for("views.login"))
 
+        def conferir_senha(usuario, senha_digitada, cpf_usuario=None, campo_senha=None):
+            try:
+                validacao_senha = getattr(usuario, "check_password", None)
+                if validacao_senha:
+                    primeiro_acesso = validacao_senha(cpf_usuario) if cpf_usuario else False
+                    correspondencia = validacao_senha(senha_digitada)
+                else:
+                    hash = getattr(usuario, campo_senha)
+                    primeiro_acesso = check_password_hash(hash, cpf_usuario) if cpf_usuario else False 
+                    correspondencia = check_password_hash(hash, senha_digitada)
+
+                return primeiro_acesso, correspondencia
+            except Exception:
+                return False, False
+            
         if tipo_usuario == 1:
             aluno = Alunos.query.filter_by(rm_aluno=login_usuario).first()
 
-            if aluno:
-                if etec.id_etec != aluno.id_etec_aluno:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))
-
-                if check_password_hash(aluno.senha_aluno, aluno.cpf_aluno) and senha_usuario == aluno.cpf_aluno:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-
-                if check_password_hash(aluno.senha_aluno, senha_usuario):
-                    login_user(aluno)
-                    return redirect(url_for("views.index"))
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
+            if not aluno:
                 flash("Usuário ou senha incorretos", "danger")
+                return redirect(url_for("views.login"))
+            
+            if etec.id_etec != aluno.id_etec_aluno:
+                flash("ETEC inválida", "danger")
+                return redirect(url_for("views.login"))
+            
+            primeiro_acesso, correspondencia = conferir_senha(aluno, senha_usuario, cpf_usuario=aluno.cpf_aluno, campo_senha="senha_aluno")
 
+            if primeiro_acesso and senha_usuario == aluno.cpf_aluno:
+                session["session_tipo_usuario"] = tipo_usuario
+                session["session_login_usuario"] = login_usuario
+                return redirect(url_for("views.primeiro_acesso"))
+            
+            if correspondencia:
+                login_user(aluno)
+                return redirect(url_for("views.index"))
+            
+            flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 2:
             tecnico = Tecnicos.query.filter_by(login_tec=login_usuario).first()
 
-            if tecnico:
-                if etec.id_etec != tecnico.id_etec_tec:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))
-
-                if check_password_hash(tecnico.senha_tec, tecnico.cpf_tec) and senha_usuario == tecnico.cpf_tec:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-                
-                if check_password_hash(tecnico.senha_tec, senha_usuario):
-                    login_user(tecnico)
-                    return redirect(url_for("views.index"))  
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
+            if not tecnico:
                 flash("Usuário ou senha incorretos", "danger")
+                return redirect(url_for("views.login"))
 
+            if etec.id_etec != tecnico.id_etec_tec:
+                flash("ETEC inválida", "danger")
+                return redirect(url_for("views.login"))
+
+            primeiro_acesso, correspondencia = conferir_senha(tecnico, senha_usuario, cpf_usuario=tecnico.cpf_tec, campo_senha="senha_tec")
+
+            if primeiro_acesso and senha_usuario == tecnico.cpf_tec:
+                session["session_tipo_usuario"] = tipo_usuario
+                session["session_login_usuario"] = login_usuario
+                return redirect(url_for("views.primeiro_acesso"))
+            
+            if correspondencia:
+                login_user(tecnico)
+                return redirect(url_for("views.index"))
+            
+            flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 3:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
-            if professor:
-                if etec.id_etec != professor.id_etec_prof:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))
-
-                if check_password_hash(professor.senha_prof, professor.cpf_prof) and senha_usuario == professor.cpf_prof:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-
-                if check_password_hash(professor.senha_prof, senha_usuario):
-                    login_user(professor)
-                    return redirect(url_for("views.index"))  
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
+            if not professor:
                 flash("Usuário ou senha incorretos", "danger")
+                return redirect(url_for("views.login"))
 
+            if etec.id_etec != professor.id_etec_prof:
+                flash("ETEC inválida", "danger")
+                return redirect(url_for("views.login"))
+
+            primeiro_acesso, correspondencia = conferir_senha(professor, senha_usuario, cpf_usuario=professor.cpf_prof, campo_senha="senha_prof")
+            
+            if primeiro_acesso and senha_usuario == professor.cpf_prof:
+                session["session_tipo_usuario"] = tipo_usuario
+                session["session_login_usuario"] = login_usuario
+                return redirect(url_for("views.primeiro_acesso"))
+            
+            if correspondencia:
+                login_user(professor)
+                return redirect(url_for("views.index"))
+            
+            flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 4:
             coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
 
-            if coordenador:
-                if etec.id_etec != coordenador.id_etec_coor:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))
-
-                if check_password_hash(coordenador.senha_coor, coordenador.cpf_coor) and senha_usuario == coordenador.cpf_coor:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-                
-                if check_password_hash(coordenador.senha_coor, senha_usuario):
-                    login_user(coordenador)
-                    return redirect(url_for("views.index"))  
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
+            if not coordenador:
                 flash("Usuário ou senha incorretos", "danger")
+                return redirect(url_for("views.login"))
 
+            if etec.id_etec != coordenador.id_etec_coor:
+                flash("ETEC inválida", "danger")
+                return redirect(url_for("views.login"))
+
+            primeiro_acesso, correspondencia = conferir_senha(coordenador, senha_usuario, cpf_usuario=coordenador.cpf_coor, campo_senha="senha_coor")
+
+            if primeiro_acesso and senha_usuario == coordenador.cpf_coor:
+                session["session_tipo_usuario"] = tipo_usuario
+                session["session_login_usuario"] = login_usuario
+                return redirect(url_for("views.primeiro_acesso"))
+            
+            if correspondencia:
+                login_user(coordenador)
+                return redirect(url_for("views.index"))
+            
+            flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 5:
             diretor = Diretores.query.filter_by(login_dir=login_usuario).first()
 
-            if diretor:
-                if etec.id_etec != diretor.id_etec_dir:
-                    flash("ETEC inválida", "danger")
-                    return redirect(url_for("views.login"))
-
-                if check_password_hash(diretor.senha_dir, diretor.cpf_dir) and senha_usuario == diretor.cpf_dir:
-                    session["session_tipo_usuario"] = tipo_usuario
-                    session["session_login_usuario"] = login_usuario
-                    return redirect(url_for("views.primeiro_acesso"))
-                
-                if check_password_hash(diretor.senha_dir, senha_usuario):
-                    login_user(diretor)
-                    return redirect(url_for("views.index"))  
-                else:
-                    flash("Usuário ou senha incorretos", "danger")
-            else:
+            if not diretor:
                 flash("Usuário ou senha incorretos", "danger")
+                return redirect(url_for("views.login"))
+
+            if etec.id_etec != diretor.id_etec_dir:
+                flash("ETEC inválida", "danger")
+                return redirect(url_for("views.login"))
+
+            primeiro_acesso, correspondencia = conferir_senha(diretor, senha_usuario, cpf_usuario=diretor.cpf_dir, campo_senha="senha_dir")
+
+            if primeiro_acesso and senha_usuario == diretor.cpf_dir:
+                session["session_tipo_usuario"] = tipo_usuario
+                session["session_login_usuario"] = login_usuario
+                return redirect(url_for("views.primeiro_acesso"))
+            
+            if correspondencia:
+                login_user(diretor)
+                return redirect(url_for("views.index"))
+            flash("Usuário ou senha incorretos", "danger")
+        else:
+            flash("Tipo de usuário inválido", "danger")
 
     session.pop("session_tipo_usuario", None)
     session.pop("session_login_usuario", None)    
@@ -644,7 +688,7 @@ def api_solicitar_redefinicao():
     except:
         return jsonify({"error": "Tipo de usuário inválido"}), 400
     
-    if tipo_usuario not in (1,2,3,4,5):
+    if tipo_usuario not in (1, 2, 3, 4, 5):
         return jsonify({"error": "Tipo de usuário inválido"}), 400
     
     if not etec_usuario or not str(etec_usuario).strip():
@@ -659,7 +703,6 @@ def api_solicitar_redefinicao():
         return jsonify({"error": "ETEC inexistente"}), 400
 
     id_etec = etec.id_etec
-
     usuario = None
     tipo = None
 
@@ -669,6 +712,7 @@ def api_solicitar_redefinicao():
             
             if not usuario:
                 return jsonify({"error": "Aluno não encontrado"}), 404
+            
             if usuario.id_etec_aluno != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
@@ -678,6 +722,7 @@ def api_solicitar_redefinicao():
             
             if not usuario:
                 return jsonify({"error": "Aluno não encontrado"}), 404
+            
             if usuario.id_etec_tec != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
@@ -687,6 +732,7 @@ def api_solicitar_redefinicao():
             
             if not usuario:
                 return jsonify({"error": "Aluno não encontrado"}), 404
+            
             if usuario.id_etec_prof != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
@@ -696,6 +742,7 @@ def api_solicitar_redefinicao():
             
             if not usuario:
                 return jsonify({"error": "Aluno não encontrado"}), 404
+            
             if usuario.id_etec_coor != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
@@ -705,6 +752,7 @@ def api_solicitar_redefinicao():
             
             if not usuario:
                 return jsonify({"error": "Aluno não encontrado"}), 404
+            
             if usuario.id_etec_dir != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
@@ -747,9 +795,9 @@ def api_solicitar_redefinicao():
         db.session.commit()
 
         return jsonify({"success": True, "id_solict": nova.id_solict}), 201
-    except Exception:
+    except Exception as exception:
         db.session.rollback()
-
+        current_app.logger.exception("Erro ao criar solicitação: %s", exception)
         return jsonify({"error": "Erro ao criar solicitação"}), 500
 
 @views.route("/logout")
@@ -861,12 +909,6 @@ def primeiro_acesso():
 
             aluno.senha_aluno = generate_password_hash(senha_usuario)
             db.session.commit()
-
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
-
         elif tipo_usuario == 2:
             tecnico = Tecnicos.query.filter_by(login_tec=login_usuario).first()
 
@@ -878,12 +920,6 @@ def primeiro_acesso():
 
             tecnico.senha_tec = generate_password_hash(senha_usuario)
             db.session.commit()
-
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
-
         elif tipo_usuario == 3:
             professor = Professores.query.filter_by(login_prof=login_usuario).first()
 
@@ -895,12 +931,6 @@ def primeiro_acesso():
 
             professor.senha_prof = generate_password_hash(senha_usuario)
             db.session.commit()
-
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
-
         elif tipo_usuario == 4:
             coordenador = Coordenadores.query.filter_by(login_coor=login_usuario).first()
 
@@ -912,12 +942,6 @@ def primeiro_acesso():
 
             coordenador.senha_coor = generate_password_hash(senha_usuario)
             db.session.commit()
-
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
-
         elif tipo_usuario == 5:
             diretor = Diretores.query.filter_by(login_dir=login_usuario).first()
 
@@ -930,9 +954,9 @@ def primeiro_acesso():
             diretor.senha_dir = generate_password_hash(senha_usuario)
             db.session.commit()
 
-            session.pop("session_tipo_usuario", None)
-            session.pop("session_login_usuario", None)
-            flash("Senha redefinida com sucesso!", "success")
-            return redirect(url_for("views.login"))
+        session.pop("session_tipo_usuario", None)
+        session.pop("session_login_usuario", None)
+        flash("Senha redefinida com sucesso!", "success")
+        return redirect(url_for("views.login"))
 
     return render_template("primeiro_acesso.html", login_usuario=login_usuario)
