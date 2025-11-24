@@ -93,7 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const meta = document.createElement("div")
                 meta.className = "mb-1 small fst-italic text-muted"
-                meta.textContent = `${solicitacao.nome_usuario || "Usuário"} • ${solicitacao.data_hora_solict ? new Date(solicitacao.data_hora_solict).toLocaleString("pt-BR") : ""}`
+
+                const label = solicitacao.rotulo_emissor || solicitacao.nome_usuario || "Usuário"
+                const dataStr = solicitacao.data_hora_solict ? new Date(solicitacao.data_hora_solict).toLocaleString("pt-BR") : ""
+                meta.textContent = `${label} • ${dataStr}`
 
                 const texto = document.createElement("div")
                 texto.className = "mb-2"
@@ -106,7 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 botao_redefinir.dataset.tipo = solicitacao.tipo
 
                 botao_redefinir.addEventListener("click", async () => {
-                        if (!confirm(`Redefinir senha de ${solicitacao.nome_usuario}?`)) return
+                        const confirmLabel = solicitacao.rotulo_emissor || solicitacao.nome_usuario || "este usuário"
+
+                        if (!confirm(`Redefinir senha de ${confirmLabel}?`)) return
 
                         botao_redefinir.disabled = true
 

@@ -263,6 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bubble.style.wordBreak = "break-word"
 
             const nome_usuario = (msg.emissor_msg && msg.emissor_msg.nome_usuario) ? msg.emissor_msg.nome_usuario : "Usuário"
+            const rotulo_emissor = (msg.emissor_msg && msg.emissor_msg.rotulo_emissor) ? msg.emissor_msg.rotulo_emissor : null
             const data_hora_msg = msg.data_hora_msg ? new Date(msg.data_hora_msg) : null
             const string_data_hora_msg = data_hora_msg ? data_hora_msg.toLocaleString("pt-BR") : ""
 
@@ -277,7 +278,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 meta.style.textAlign = "left"
             }
 
-            meta.textContent = `${nome_usuario} • ${string_data_hora_msg}`
+            const label = rotulo_emissor || nome_usuario
+            meta.textContent = `${label} • ${string_data_hora_msg}`
 
             const texto = document.createElement("div")
             texto.innerHTML = formatarHTML(msg.texto_msg)

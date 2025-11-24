@@ -216,6 +216,39 @@ def converter_fuso_horario(data_hora, fuso_horario="America/Sao_Paulo"):
     except Exception:
         return data_hora.isoformat()
 
+def rotulo_emissor(tipo_usuario, usuario):
+    if not usuario:
+        return None
+    
+    if tipo_usuario == "aluno":
+        return getattr(usuario, "nome_aluno", None)
+
+    if tipo_usuario == "tec":
+        nome = getattr(usuario, "nome_tec", None)
+        sexo = getattr(usuario, "sexo_tec", None)
+        cargo = "Técnico" if sexo == "M" else "Técnica"
+        return f"{cargo} {nome}" if nome else None
+
+    if tipo_usuario == "prof":
+        nome = getattr(usuario, "nome_prof", None)
+        sexo = getattr(usuario, "sexo_prof", None)
+        cargo = "Professor" if sexo == "M" else "Professora"
+        return f"{cargo} {nome}" if nome else None
+
+    if tipo_usuario == "coor":
+        nome = getattr(usuario, "nome_coor", None)
+        sexo = getattr(usuario, "sexo_coor", None)
+        cargo = "Coordenador" if sexo == "M" else "Coordenadora"
+        return f"{cargo} {nome}" if nome else None
+
+    if tipo_usuario == "dir":
+        nome = getattr(usuario, "nome_dir", None)
+        sexo = getattr(usuario, "sexo_dir", None)
+        cargo = "Diretor" if sexo == "M" else "Diretora"
+        return f"{cargo} {nome}" if nome else None
+
+    return None
+
 @views.route("/api/mensagens", methods=["GET"])
 @login_required
 def api_mensagens():
@@ -238,15 +271,30 @@ def api_mensagens():
         emissor_msg = {}
 
         if msg.aluno_msg:
-            emissor_msg = {"tipo_usuario": "aluno", "id_usuario": msg.id_aluno_msg, "nome_usuario": msg.aluno_msg.nome_aluno}
+            emissor_msg["tipo_usuario"] = "aluno"
+            emissor_msg["id_usuario"] = msg.id_aluno_msg
+            emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno
+            emissor_msg["rotulo_emissor"] = rotulo_emissor("aluno", msg.aluno_msg)
         elif msg.tec_msg:
-            emissor_msg = {"tipo_usuario": "tec", "id_usuario": msg.id_tec_msg, "nome_usuario": msg.tec_msg.nome_tec}
+            emissor_msg["tipo_usuario"] = "tec"
+            emissor_msg["id_usuario"] = msg.id_tec_msg
+            emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec
+            emissor_msg["rotulo_emissor"] = rotulo_emissor("tec", msg.tec_msg)
         elif msg.prof_msg:
-            emissor_msg = {"tipo_usuario": "prof", "id_usuario": msg.id_prof_msg, "nome_usuario": msg.prof_msg.nome_prof}
+            emissor_msg["tipo_usuario"] = "prof"
+            emissor_msg["id_usuario"] = msg.id_prof_msg
+            emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof
+            emissor_msg["rotulo_emissor"] = rotulo_emissor("prof", msg.prof_msg)
         elif msg.coor_msg:
-            emissor_msg = {"tipo_usuario": "coor", "id_usuario": msg.id_coor_msg, "nome_usuario": msg.coor_msg.nome_coor}
+            emissor_msg["tipo_usuario"] = "coor"
+            emissor_msg["id_usuario"] = msg.id_coor_msg
+            emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor
+            emissor_msg["rotulo_emissor"] = rotulo_emissor("coor", msg.coor_msg)
         elif msg.dir_msg:
-            emissor_msg = {"tipo_usuario": "dir", "id_usuario": msg.id_dir_msg, "nome_usuario": msg.dir_msg.nome_dir}
+            emissor_msg["tipo_usuario"] = "dir"
+            emissor_msg["id_usuario"] = msg.id_dir_msg
+            emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir
+            emissor_msg["rotulo_emissor"] = rotulo_emissor("dir", msg.dir_msg)
 
         res_msg.append({
             "id_msg": msg.id_msg,
@@ -369,14 +417,19 @@ def api_enviar_mensagem():
 
     if tipo_usuario == "aluno":
         emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno if msg.aluno_msg else None
+        emissor_msg["rotulo_emissor"] = rotulo_emissor("aluno", msg.aluno_msg) if msg.aluno_msg else None
     elif tipo_usuario == "tec":
         emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec if msg.tec_msg else None
+        emissor_msg["rotulo_emissor"] = rotulo_emissor("tec", msg.tec_msg) if msg.tec_msg else None
     elif tipo_usuario == "prof":
         emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof if msg.prof_msg else None
+        emissor_msg["rotulo_emissor"] = rotulo_emissor("prof", msg.prof_msg) if msg.prof_msg else None
     elif tipo_usuario == "coor":
         emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor if msg.coor_msg else None
+        emissor_msg["rotulo_emissor"] = rotulo_emissor("coor", msg.coor_msg) if msg.coor_msg else None
     elif tipo_usuario == "dir":
         emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir if msg.dir_msg else None
+        emissor_msg["rotulo_emissor"] = rotulo_emissor("dir", msg.dir_msg) if msg.dir_msg else None
 
     return jsonify({
         "success": True,
@@ -425,29 +478,36 @@ def api_solicitacoes():
     for solicitacao in solicitacoes:
         id_usuario = None
         nome_usuario = None
+        usuario = None
 
         if solicitacao.aluno_solict:
             id_usuario = solicitacao.id_aluno_solict
             nome_usuario = solicitacao.aluno_solict.nome_aluno
+            usuario = solicitacao.aluno_solict
         elif solicitacao.tec_solict:
             id_usuario = solicitacao.id_tec_solict
             nome_usuario = solicitacao.tec_solict.nome_tec
+            usuario = solicitacao.tec_solict
         elif solicitacao.prof_solict:
             id_usuario = solicitacao.id_prof_solict
             nome_usuario = solicitacao.prof_solict.nome_prof
+            usuario = solicitacao.prof_solict
         elif solicitacao.coor_solict:
             id_usuario = solicitacao.id_coor_solict
             nome_usuario = solicitacao.coor_solict.nome_coor
+            usuario = solicitacao.coor_solict
         elif solicitacao.dir_solict:
             id_usuario = solicitacao.id_dir_solict
             nome_usuario = solicitacao.dir_solict.nome_dir
+            usuario = solicitacao.dir_solict
 
         resultado.append({
             "id_solict": solicitacao.id_solict,
             "data_hora_solict": converter_fuso_horario(solicitacao.data_hora_solict),
             "tipo": canal,
             "id_usuario": id_usuario,
-            "nome_usuario": nome_usuario
+            "nome_usuario": nome_usuario,
+            "rotulo_emissor": rotulo_emissor(canal, usuario)
         })
     
     return jsonify(resultado)
