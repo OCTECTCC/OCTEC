@@ -28,7 +28,7 @@
                             <label class="form-label" for="input_etec">Código da ETEC</label>
                             <div class="input-group">
                                 <input id="input_etec" name="etec_usuario" class="form-control" type="text" minlength="3" maxlength="3" pattern="\d{3}" placeholder="Digite o código de sua ETEC (Ex: 123)" required tabindex="2">
-                                <button class="btn btn-danger" type="button" title="Encontre sua ETEC" data-bs-toggle="modal" data-bs-target="#div_modal_etec">?</button>
+                                <button class="btn btn-danger px-3" type="button" title="Encontre sua ETEC" data-bs-toggle="modal" data-bs-target="#div_modal_etec">?</button>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -37,7 +37,12 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="input_senha">Senha</label>
-                            <input id="input_senha" name="senha_usuario" class="form-control" type="password" placeholder="Digite sua senha" required tabindex="4">
+                            <div class="input-group">
+                                <input id="input_senha" name="senha_usuario" class="form-control" type="password" placeholder="Digite sua senha" required tabindex="4">
+                                <button class="btn btn-light text-dark rounded-end border-start" type="button" data-toggle-password data-target="#input_senha" title="Mostrar senha">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <button class="btn btn-danger w-100" type="submit" tabindex="5">Entrar</button>
                         <div class="text-center mt-2">
@@ -85,4 +90,5 @@
     </footer>
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
     <script src="{{ url_for('static', filename='js/etecs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mostrar_senha.js') }}"></script>
 {% endblock %}
