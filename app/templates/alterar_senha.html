@@ -16,15 +16,30 @@
                     <h2 class="text-center">Alterar senha</h2>
                     <div class="mb-3">
                         <label for="senha_atual" class="form-label">Senha atual</label>
-                        <input type="password" class="form-control" id="senha_atual" name="senha_atual" minlength="6" maxlength="20" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="senha_atual" name="senha_atual" minlength="6" maxlength="20" required>
+                            <button class="btn btn-light text-dark rounded-end border-start" type="button" data-toggle-password data-target="#senha_atual" title="Mostrar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="nova_senha" class="form-label">Nova senha</label>
-                        <input type="password" class="form-control" id="nova_senha" name="nova_senha" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="nova_senha" name="nova_senha" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" required>
+                            <button class="btn btn-light text-dark rounded-end border-start" type="button" data-toggle-password data-target="#nova_senha" title="Mostrar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="confirmar_senha" class="form-label">Confirmar nova senha</label>
-                        <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" minlength="6" maxlength="20" pattern="(?=.*[A-Za-z])(?=.*\d).{6,}" required>
+                            <button class="btn btn-light text-dark rounded-end border-start" type="button" data-toggle-password data-target="#confirmar_senha" title="Mostrar senha" tabindex="-1">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="text-center mb-3">
                         <a href="{{ url_for('views.perfil') }}" class="btn btn-outline-light btn-sm">Cancelar</a>
@@ -37,4 +52,5 @@
     <footer class="text-center text-bg-dark py-3 mt-auto">
         &copy; 2025 - OCTEC
     </footer>
+    <script src="{{ url_for('static', filename='js/mostrar_senha.js') }}"></script>
 {% endblock %}

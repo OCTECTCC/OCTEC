@@ -836,9 +836,9 @@ def perfil():
 @login_required
 def alterar_senha():
     if request.method == "POST":
-        senha_atual = request.form.get("senha_atual", "").strip()
-        nova_senha = request.form.get("nova_senha", "").strip()
-        confirmar_senha = request.form.get("confirmar_senha", "").strip()
+        senha_atual = (request.form.get("senha_atual") or "").strip()
+        nova_senha = (request.form.get("nova_senha") or "").strip()
+        confirmar_senha = (request.form.get("confirmar_senha") or "").strip()
 
         if not senha_atual or not nova_senha or not confirmar_senha:
             flash("Preencha todos os campos", "warning")
@@ -848,29 +848,36 @@ def alterar_senha():
             flash("As senhas não coincidem", "warning")
             return redirect(url_for("views.alterar_senha"))
         
-        if len(nova_senha) < 6:
-            flash("A nova senha deve ter pelo menos 6 caracteres", "warning")
+        padrao = re.compile(r"(?=.*[A-Za-z])(?=.*\d).{6,}")
+
+        if not padrao.fullmatch(nova_senha):
+            flash("A nova senha deve ter mínimo 6 caracteres e incluir letras e números", "warning")
             return redirect(url_for("views.alterar_senha"))
 
         cargo_usuario = getattr(current_user, "id_cargo_usuario", None)
 
         if cargo_usuario == 1:
-            hash_senha_atual = current_user.senha_aluno
+            hash_senha_atual = getattr(current_user, "senha_aluno", None)
             campo_senha = "senha_aluno"
         elif cargo_usuario == 2:
-            hash_senha_atual = current_user.senha_tec
+            hash_senha_atual = getattr(current_user, "senha_tec", None)
             campo_senha = "senha_tec"
         elif cargo_usuario == 3:
-            hash_senha_atual = current_user.senha_prof
+            hash_senha_atual = getattr(current_user, "senha_prof", None)
             campo_senha = "senha_prof"
         elif cargo_usuario == 4:
-            hash_senha_atual = current_user.senha_coor
+            hash_senha_atual = getattr(current_user, "senha_coor", None)
             campo_senha = "senha_coor"
         elif cargo_usuario == 5:
-            hash_senha_atual = current_user.senha_dir
+            hash_senha_atual = getattr(current_user, "senha_dir", None)
             campo_senha = "senha_dir"
         else:
             flash("Erro no cargo de usuário", "danger")
+            return redirect(url_for("views.perfil"))
+
+        if not hash_senha_atual:
+            current_app.logger.error("Campo de senha ausente para usuário %s", current_user)
+            flash("Erro interno: dados de usuário inválidos", "danger")
             return redirect(url_for("views.perfil"))
 
         if not check_password_hash(hash_senha_atual, senha_atual):
@@ -878,16 +885,15 @@ def alterar_senha():
             return redirect(url_for("views.alterar_senha"))
 
         if check_password_hash(hash_senha_atual, nova_senha):
-            flash("A nova senha não pode ser igual a senha anterior", "danger")
+            flash("A nova senha não pode ser igual à senha anterior", "danger")
             return redirect(url_for("views.alterar_senha"))
 
-        setattr(current_user, campo_senha, generate_password_hash(nova_senha))
-
         try:
+            setattr(current_user, campo_senha, generate_password_hash(nova_senha))
             db.session.commit()
-        except Exception as exception:
+        except SQLAlchemyError as error:
             db.session.rollback()
-            current_app.logger.exception("Erro ao alterar senha")
+            current_app.logger.exception("Erro ao alterar senha: %s", error)
             flash("Ocorreu um erro ao salvar a nova senha. Tente novamente", "danger")
             return redirect(url_for("views.alterar_senha"))
         

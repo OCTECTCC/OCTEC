@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!input) return
 
+    btn.setAttribute("tabindex", "-1")
+
     const parent = btn.parentNode;
     const placeholder = document.createComment('pw-btn-placeholder');
 
@@ -48,6 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
         input.focus()
       } catch(error) {}
     }
+
+    btn.addEventListener('focus', () => {
+      try {
+        btn.blur()
+      } catch (error) {}
+    });
+
+    btn.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Tab') {
+        evento.preventDefault();
+      }
+    });
 
     input.addEventListener('mouseenter', () => {
       input_hover = true
