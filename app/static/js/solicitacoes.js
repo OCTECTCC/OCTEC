@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const texto = document.createElement("div")
                 texto.className = "mb-2"
-                texto.innerHTML = `Solicitação de redefinição de senha.`
+                texto.innerHTML = `Solicitação de redefinição de senha`
 
                 const botao_redefinir = document.createElement("button")
                 botao_redefinir.className = "btn btn-sm btn-danger"
@@ -109,9 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 botao_redefinir.dataset.tipo = solicitacao.tipo
 
                 botao_redefinir.addEventListener("click", async () => {
-                        const confirmLabel = solicitacao.rotulo_emissor || solicitacao.nome_usuario || "este usuário"
+                        const confirmar_label = solicitacao.rotulo_emissor || solicitacao.nome_usuario || "este usuário"
 
-                        if (!confirm(`Redefinir senha de ${confirmLabel}?`)) return
+                        if (!confirm(`Redefinir senha de ${confirmar_label}?`)) return
 
                         botao_redefinir.disabled = true
 
@@ -152,9 +152,69 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                 })
 
+                const botao_excluir = document.createElement("button")
+                botao_excluir.className = "btn btn-sm btn-outline-danger ms-2"
+                botao_excluir.type = "button"
+                botao_excluir.title = "Excluir solicitação"
+                botao_excluir.dataset.idSolict = solicitacao.id_solict
+                botao_excluir.dataset.tipo = solicitacao.tipo
+
+                const icone = document.createElement("i")
+                icone.className = "bi bi-trash"
+                botao_excluir.appendChild(icone)
+
+                botao_excluir.addEventListener("click", async () => {
+                        const confirmar_label = solicitacao.rotulo_emissor || solicitacao.nome_usuario || "esta solicitação"
+
+                        if (!confirm(`Excluir solicitação de ${confirmar_label}? Esta ação não redefinirá a senha`)) return
+
+                        botao_excluir.disabled = true
+
+                        try {
+                                const resposta = await fetch("/api/solicitacoes/excluir", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ id_solict: solicitacao.id_solict, tipo: solicitacao.tipo })
+                                })
+
+                                let json = null
+
+                                try {
+                                        json = await resposta.clone().json()
+                                } catch(e) {
+                                        try {
+                                                json = await resposta.clone().text()
+                                        } catch(e2) {
+                                                json = null
+                                        }
+                                }
+
+                                if (!resposta.ok) {
+                                        const mensagem = (json && json.error) ? json.error : (typeof json === "string" ? json : "Erro ao excluir")
+                                        console.error("Resposta inválida:", resposta.status, json)
+                                        mostrar_toast(mensagem, "danger")
+                                        botao_excluir.disabled = false
+                                        return
+                                }
+
+                                row.remove()
+
+                                mostrar_toast("Solicitação excluída", "success")
+                        } catch (erro) {
+                                console.error("Erro fetch:", erro)
+                                mostrar_toast("Erro de rede" + (erro && erro.message ? " — " + erro.message : ""), "danger")
+                                botao_excluir.disabled = false
+                        }
+                })
+
+                const container_botoes = document.createElement("div")
+                container_botoes.className = "d-flex justify-content-between w-100"
+                container_botoes.appendChild(botao_redefinir)
+                container_botoes.appendChild(botao_excluir)
+
                 bubble.appendChild(meta)
                 bubble.appendChild(texto)
-                bubble.appendChild(botao_redefinir)
+                bubble.appendChild(container_botoes)
                 row.appendChild(bubble)
 
                 return row

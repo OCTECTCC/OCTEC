@@ -571,6 +571,46 @@ def api_solicitacoes_redefinir():
         db.session.rollback()
         return jsonify({"error": "Erro interno ao redefinir senha", "detail": str(exception)}), 500
 
+@views.route("/api/solicitacoes/excluir", methods=["POST"])
+@login_required
+def api_solicitacoes_excluir():
+    if getattr(current_user, "id_cargo_usuario", None) != 2:
+        return jsonify({"error": "Permissão negada"}), 403
+
+    payload = request.get_json(silent=True) or request.form.to_dict() or {}
+    id_solict_bruto = payload.get("id_solict")
+    tipo_bruto = payload.get("tipo") or payload.get("tipo_usuario") or payload.get("tipoUsuario") or ""
+
+    try:
+        id_solict = int(id_solict_bruto)
+    except Exception:
+        id_solict = None
+
+    tipo = (str(tipo_bruto).strip().lower() if tipo_bruto is not None else "")
+
+    if not id_solict or not tipo:
+        return jsonify({"error": "Dados incompletos"}), 400
+
+    solicitacao = Solicitacoes.query.get(id_solict)
+
+    if not solicitacao:
+        return jsonify({"error": "Solicitação não encontrada"}), 404
+
+    etec = getattr(current_user, "etec_tec", None)
+    id_etec = getattr(etec, "id_etec", None)
+
+    if id_etec is None or solicitacao.id_etec_solict != id_etec:
+        return jsonify({"error": "Permissão negada"}), 403
+
+    try:
+        db.session.delete(solicitacao)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as exception:
+        current_app.logger.exception("Erro ao excluir solicitação (id=%s, tipo=%s): %s", id_solict, tipo, str(exception))
+        db.session.rollback()
+        return jsonify({"error": "Erro interno ao excluir solicitação", "detail": str(exception)}), 500
+
 @views.route("/login", methods=["GET","POST"])
 def login():
     if current_user.is_authenticated:
