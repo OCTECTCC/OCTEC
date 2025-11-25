@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const tipo = document.getElementById('select_usuario').value
         const etec = document.getElementById('input_etec').value.trim()
         const login = document.getElementById('input_login').value.trim()
+        const cpf_bruto = document.getElementById('input_senha').value.trim()
 
         if (!tipo) { mostrar_toast("Selecione o tipo de usuário", "warning"); return }
 
@@ -104,13 +105,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!login) { mostrar_toast("Informe seu login / RM", "warning"); return }
 
+        if (!cpf_bruto) { mostrar_toast("Informe seu CPF no campo 'Senha' para confirmar a solicitação", "warning"); return }
+
+        const digitos_cpf = (cpf_bruto || "").replace(/\D/g, "")
+        if (digitos_cpf.length !== 11) {
+            mostrar_toast("CPF inválido. Digite os 11 dígitos do CPF (somente números)", "warning")
+            return
+        }
+
         if (!confirm("Deseja solicitar a redefinição de senha com esses dados?")) return
 
         try {
             const resp = await fetch("/api/solicitacoes/solicitar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tipo_usuario: tipo, etec_usuario: etec, login_usuario: login })
+                body: JSON.stringify({
+                    tipo_usuario: tipo,
+                    etec_usuario: etec,
+                    login_usuario: login,
+                    cpf_usuario: digitos_cpf
+                })
             })
 
             let json = {}

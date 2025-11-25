@@ -802,6 +802,7 @@ def api_solicitar_redefinicao():
     tipo_usuario = payload.get("tipo_usuario")
     etec_usuario = payload.get("etec_usuario")
     login_usuario = payload.get("login_usuario")
+    cpf_usuario = payload.get("cpf_usuario") or payload.get("senha_usuario") or payload.get("senha") or ""
 
     try:
         tipo_usuario = int(tipo_usuario)
@@ -817,6 +818,11 @@ def api_solicitar_redefinicao():
     if not login_usuario or not str(login_usuario).strip():
         return jsonify({"error": "Login/RM ausente"}), 400
     
+    digitos_cpf = re.sub(r"\D", "", str(cpf_usuario or ""))
+
+    if not digitos_cpf or len(digitos_cpf) != 11:
+        return jsonify({"error": "CPF ausente ou inválido (11 dígitos)"}), 400
+
     etec = Etecs.query.filter_by(codigo_etec=str(etec_usuario).strip()).first()
 
     if not etec:
@@ -836,6 +842,11 @@ def api_solicitar_redefinicao():
             if usuario.id_etec_aluno != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
+            cpf = re.sub(r"\D", "", str(getattr(usuario, "cpf_aluno", "") or ""))
+
+            if cpf != digitos_cpf:
+                return jsonify({"error": "CPF inválido"}), 400
+            
             tipo = "aluno"
         elif tipo_usuario == 2:
             usuario = Tecnicos.query.filter_by(login_tec=str(login_usuario).strip()).first()
@@ -846,6 +857,11 @@ def api_solicitar_redefinicao():
             if usuario.id_etec_tec != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
+            cpf = re.sub(r"\D", "", str(getattr(usuario, "cpf_tec", "") or ""))
+
+            if cpf != digitos_cpf:
+                return jsonify({"error": "CPF inválido"}), 400
+
             tipo = "tec"
         elif tipo_usuario == 3:
             usuario = Professores.query.filter_by(login_prof=str(login_usuario).strip()).first()
@@ -856,6 +872,11 @@ def api_solicitar_redefinicao():
             if usuario.id_etec_prof != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
             
+            cpf = re.sub(r"\D", "", str(getattr(usuario, "cpf_prof", "") or ""))
+
+            if cpf != digitos_cpf:
+                return jsonify({"error": "CPF inválido"}), 400
+
             tipo = "prof"
         elif tipo_usuario == 4:
             usuario = Coordenadores.query.filter_by(login_coor=str(login_usuario).strip()).first()
@@ -865,7 +886,11 @@ def api_solicitar_redefinicao():
             
             if usuario.id_etec_coor != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
-            
+
+            cpf = re.sub(r"\D", "", str(getattr(usuario, "cpf_coor", "") or ""))
+            if cpf != digitos_cpf:
+                return jsonify({"error": "CPF inválido"}), 400
+
             tipo = "coor"
         elif tipo_usuario == 5:
             usuario = Diretores.query.filter_by(login_dir=str(login_usuario).strip()).first()
@@ -875,6 +900,11 @@ def api_solicitar_redefinicao():
             
             if usuario.id_etec_dir != id_etec:
                 return jsonify({"error": "ETEC inválida para esse aluno"}), 400
+
+            cpf = re.sub(r"\D", "", str(getattr(usuario, "cpf_dir", "") or ""))
+
+            if cpf != digitos_cpf:
+                return jsonify({"error": "CPF inválido"}), 400
             
             tipo = "dir"
     except Exception:
