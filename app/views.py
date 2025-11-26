@@ -441,6 +441,75 @@ def api_enviar_mensagem():
         "id_aula_msg": msg.id_aula_msg
     }), 201
 
+@views.route("/api/mensagens/excluir", methods=["POST"])
+@login_required
+def api_excluir_mensagem():
+    payload = request.get_json(silent=True) or request.form.to_dict() or {}
+    id_msg_bruto = payload.get("id_msg") or payload.get("idMensagem") or payload.get("id")
+
+    try:
+        id_msg = int(id_msg_bruto)
+    except Exception:
+        return jsonify({"error": "ID da mensagem inválido"}), 400
+
+    msg = Mensagens.query.get(id_msg)
+
+    if not msg:
+        return jsonify({"error": "Mensagem não encontrada"}), 404
+    
+    id_usuario_str = current_user.get_id() if hasattr(current_user, "get_id") else None
+    tipo_usuario = None
+    id_usuario = None
+
+    if id_usuario_str and "-" in id_usuario_str:
+        tipo_usuario, id_usuario_bruto = id_usuario_str.split("-", 1)
+
+        try:
+            id_usuario = int(id_usuario_bruto)
+        except:
+            id_usuario = None
+    else:
+        if hasattr(current_user, "id_aluno"):
+            tipo_usuario, id_usuario = "aluno", getattr(current_user, "id_aluno")
+        elif hasattr(current_user, "id_tec"):
+            tipo_usuario, id_usuario = "tec", getattr(current_user, "id_tec")
+        elif hasattr(current_user, "id_prof"):
+            tipo_usuario, id_usuario = "prof", getattr(current_user, "id_prof")
+        elif hasattr(current_user, "id_coor"):
+            tipo_usuario, id_usuario = "coor", getattr(current_user, "id_coor")
+        elif hasattr(current_user, "id_dir"):
+            tipo_usuario, id_usuario = "dir", getattr(current_user, "id_dir")
+
+    pertence = False
+
+    try:
+        if tipo_usuario == "aluno" and msg.id_aluno_msg == id_usuario:
+            pertence = True
+        elif tipo_usuario == "tec" and msg.id_tec_msg == id_usuario:
+            pertence = True
+        elif tipo_usuario == "prof" and msg.id_prof_msg == id_usuario:
+            pertence = True
+        elif tipo_usuario == "coor" and msg.id_coor_msg == id_usuario:
+            pertence = True
+        elif tipo_usuario == "dir" and msg.id_dir_msg == id_usuario:
+            pertence = True
+    except Exception:
+        pertence = False
+
+    if not pertence:
+        return jsonify({"error": "Você não tem permissão para excluir esta mensagem"}), 403
+
+    try:
+        db.session.delete(msg)
+        db.session.commit()
+
+        return jsonify({"success": True})
+    except Exception as exception:
+        current_app.logger.exception("Erro ao excluir mensagem (id=%s): %s", id_msg, str(exception))
+        db.session.rollback()
+        
+        return jsonify({"error": "Erro interno ao excluir mensagem", "detail": str(exception)}), 500
+
 @views.route("/api/solicitacoes", methods=["GET"])
 @login_required
 def api_solicitacoes():

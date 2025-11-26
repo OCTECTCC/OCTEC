@@ -231,6 +231,43 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function mostrar_toast(mensagem, tipo = "success") {
+        const container = document.createElement("div")
+        container.className = "position-fixed bottom-0 end-0 p-3 z-3"
+
+        const toast = document.createElement("div")
+        toast.className = `toast align-items-center text-bg-${tipo} border-0`
+        toast.setAttribute("role", "status")
+
+        const inner = document.createElement("div")
+        inner.className = "d-flex"
+
+        const body = document.createElement("div")
+        body.className = "toast-body"
+        body.textContent = mensagem
+
+        const btn = document.createElement("button")
+        btn.className = "btn-close btn-close-white me-2 m-auto"
+        btn.type = "button"
+
+        btn.addEventListener("click", () => {
+            const bs = bootstrap.Toast.getInstance(toast)
+            if (bs) bs.hide()
+        })
+
+        inner.appendChild(body)
+        inner.appendChild(btn)
+        toast.appendChild(inner)
+        container.appendChild(toast)
+        document.body.appendChild(container)
+
+        const bs_toast = new bootstrap.Toast(toast, { delay: 4000 })
+        bs_toast.show()
+
+        toast.addEventListener("hidden.bs.toast", () => container.remove())
+    }
+
+
     function exibir_mensagens(mensagens) {
         mensagens_chat.innerHTML = ""
         mensagens_chat.className = "position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
@@ -267,24 +304,83 @@ document.addEventListener("DOMContentLoaded", () => {
             const data_hora_msg = msg.data_hora_msg ? new Date(msg.data_hora_msg) : null
             const string_data_hora_msg = data_hora_msg ? data_hora_msg.toLocaleString("pt-BR") : ""
 
+            const top_container = document.createElement("div")
+            top_container.className = "d-flex justify-content-between align-items-center mb-1"
+
             const meta = document.createElement("div")
-            meta.className = "mb-1 small fst-italic"
+            meta.className = "small fst-italic"
 
             if (sou_eu) {
                 meta.classList.add("text-white-50")
-                meta.style.textAlign = "right"
+                meta.style.textAlign = "left"
             } else {
                 meta.classList.add("text-muted")
                 meta.style.textAlign = "left"
             }
 
             const label = rotulo_emissor || nome_usuario
+
             meta.textContent = `${label} • ${string_data_hora_msg}`
+
+            top_container.appendChild(meta)
+
+            if (sou_eu) {
+                const btn_exluir = document.createElement("button")
+                btn_exluir.className = "btn btn-sm btn-danger ms-2"
+                btn_exluir.title = "Excluir mensagem"
+                btn_exluir.type = "button"
+                btn_exluir.innerHTML = '<i class="bi bi-trash-fill"></i>'
+                btn_exluir.style.minWidth = "36px"
+
+                btn_exluir.dataset.idMsg = msg.id_msg
+
+                btn_exluir.addEventListener("click", async () => {
+                    const confirm_label = rotulo_emissor || nome_usuario || "esta mensagem"
+
+                    if (!confirm(`Excluir mensagem de ${confirm_label}?`)) return
+
+                    btn_exluir.disabled = true
+
+                    try {
+                        const resp = await fetch("/api/mensagens/excluir", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id_msg: msg.id_msg })
+                        })
+
+                        let json = null
+
+                        try {
+                            json = await resp.clone().json()
+                        } catch(e) {
+                            json = null
+                        }
+
+                        if (!resp.ok) {
+                            const mensagem_erro = (json && json.error) ? json.error : "Erro ao excluir mensagem"
+                            console.error("Erro excluir:", resp.status, json)
+                            mostrar_toast(mensagem_erro, "danger")
+                            btn_exluir.disabled = false
+                            return
+                        }
+
+                        row.remove()
+                        row.remove()
+                        mostrar_toast("Mensagem excluída", "success")
+                    } catch (erro) {
+                        console.error("Erro fetch excluir:", erro)
+                        mostrar_toast("Erro de rede ao excluir mensagem", "danger")
+                        btn_exluir.disabled = false
+                    }
+                })
+
+                top_container.appendChild(btn_exluir)
+            }  
 
             const texto = document.createElement("div")
             texto.innerHTML = formatarHTML(msg.texto_msg)
 
-            bubble.appendChild(meta)
+            bubble.appendChild(top_container)
             bubble.appendChild(texto)
             row.appendChild(bubble)
             mensagens_chat.appendChild(row)
@@ -295,7 +391,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (scroll_automatico) {
             requestAnimationFrame(() => {
                 const scroll_maximo = mensagens_chat.scrollHeight - mensagens_chat.clientHeight
-
                 mensagens_chat.scrollTop = scroll_maximo > 0 ? scroll_maximo : 0
             })
         }
