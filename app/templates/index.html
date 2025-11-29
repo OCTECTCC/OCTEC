@@ -20,6 +20,7 @@
                         <span class="ms-2 fw-semibold">OCTEC</span>
                     </div>
                     <div class="d-flex justify-content-end align-items-center container-fluid gap-2">
+                        <span class="me-2">Olá, <b>{% if current_user.id_cargo_usuario == 1 %}{{ current_user.nome_aluno }}{% elif current_user.id_cargo_usuario == 2 %}{{ current_user.nome_tec }}{% elif current_user.id_cargo_usuario == 3 %}{{ current_user.nome_prof }}{% elif current_user.id_cargo_usuario == 4 %}{{ current_user.nome_coor }}{% elif current_user.id_cargo_usuario == 5 %}{{ current_user.nome_dir }}{% endif %}</b></span>
                         <a class="btn btn-sm btn-outline-dark" href="{{ url_for('views.perfil') }}" title="Perfil">
                             <i class="bi bi-person-circle"></i>
                         </a>
