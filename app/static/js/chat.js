@@ -79,6 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
         scroll_automatico = proximo_baixo
     }, { passive: true })
 
+    function abortar_chat_fetch() {
+        try {
+            if (mensagens_chat && mensagens_chat._fetchController) {
+                mensagens_chat._fetchController.abort();
+            }
+        } catch (error) {
+            console.error("Erro abortando fetch do chat:", error);
+        } finally {
+            if (mensagens_chat) mensagens_chat._fetchController = null;
+        }
+    }
+
     function limpar_selecao() {
         chat_selecionado = { tipo_chat: null, id_chat: null, descricao_chat: null }
 
@@ -88,9 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (chat_header) chat_header.classList.add("d-none")
-
         if (chat_form) chat_form.classList.add("d-none")
-
         if (titulo_chat) titulo_chat.textContent = ""
 
         if (input_chat) {
@@ -104,6 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (mensagens_chat) {
             mensagens_chat.className = "d-flex justify-content-center align-items-center position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
             mensagens_chat.innerText = "Selecione um canal"
+            mensagens_chat.dataset.view = ""
         }
 
         if (descricao_chat_selecionado) {
@@ -111,9 +122,18 @@ document.addEventListener("DOMContentLoaded", () => {
             descricao_chat_selecionado = null
         }
 
+        abortar_chat_fetch();
         scroll_automatico = false
         ajustar_altura()
     }
+
+    document.addEventListener("limpar_sessao_chat", () => {
+        try {
+            limpar_selecao()
+        } catch (e) {
+            console.error("Erro ao tentar limpar seleção do chat via evento:", e)
+        }
+    })
 
     document.querySelectorAll("[data-canal]").forEach(elemento => {
         elemento.addEventListener("click", (evento) => {
@@ -134,100 +154,131 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     function selecionar_chat(tipo_chat, id_chat, descricao_chat, descricao_chat_clicado = null) {
+        try {
+            document.dispatchEvent(new Event("limpar_sessao_solicitacoes"))
+        } catch (error) {
+            console.error("Erro ao dispatch limpar_sessao_solicitacoes:", error)
+        }
+
         if (chat_selecionado.tipo_chat === tipo_chat && String(chat_selecionado.id_chat) === String(id_chat)) {
             return limpar_selecao()
         }
 
-        chat_selecionado.tipo_chat = tipo_chat
-        chat_selecionado.id_chat = id_chat
-        chat_selecionado.descricao_chat = descricao_chat
+        const _tipo_chat = tipo_chat
+        const _id_chat = id_chat
+        const _descricao_chat = descricao_chat
+        const _descricao_chat_clicado = descricao_chat_clicado
 
-        if (descricao_chat_clicado) {
-            if (descricao_chat_selecionado && descricao_chat_selecionado !== descricao_chat_clicado) {
-                descricao_chat_selecionado.classList.remove("text-danger", "fw-bold")
-            }
+        setTimeout(() => {
+            if (mensagens_chat) mensagens_chat.dataset.view = "chat"
 
-            descricao_chat_clicado.classList.add("text-danger", "fw-bold")
-            descricao_chat_selecionado = descricao_chat_clicado
-        }
+            chat_selecionado.tipo_chat = _tipo_chat
+            chat_selecionado.id_chat = _id_chat
+            chat_selecionado.descricao_chat = _descricao_chat
 
-        if (chat_header) chat_header.classList.remove("d-none")
-
-        if (chat_form) chat_form.classList.remove("d-none")
-
-        titulo_chat.textContent = descricao_chat
-
-        let pode_enviar = true
-    
-        if (tipo_chat === "canal" && descricao_chat_clicado) {
-            const emissor_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-emissor")
-            const moderador_canal_str = descricao_chat_clicado.getAttribute("data-id-cargo-moderador")
-
-            let emissor_cargo = null
-            let moderador_cargo = null
-
-            if (emissor_canal_str) emissor_cargo = parseInt(emissor_canal_str, 10)
-
-            if (emissor_cargo !== null) {
-                pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_cargo)
-            } else {
-                pode_enviar = true
-            }
-
-            if (!pode_enviar && moderador_cargo !== null && cargo_usuario === moderador_cargo) {
-                pode_enviar = true
-            }
-
-            if (!pode_enviar) {
-                if (input_chat) {
-                    input_chat.disabled = true
-                    input_chat.placeholder = "Você não possui permissão para mandar mensagem neste canal"
+            if (_descricao_chat_clicado) {
+                if (descricao_chat_selecionado && descricao_chat_selecionado !== _descricao_chat_clicado) {
+                    descricao_chat_selecionado.classList.remove("text-danger", "fw-bold")
                 }
 
-                if (enviar_chat) enviar_chat.disabled = true
-            } else {
-                if (input_chat) {
-                    input_chat.disabled = false
-                    resetar_placeholder()
+                _descricao_chat_clicado.classList.add("text-danger", "fw-bold")
+                descricao_chat_selecionado = _descricao_chat_clicado
+            }
+
+            if (chat_header) chat_header.classList.remove("d-none")
+            if (chat_form) chat_form.classList.remove("d-none")
+
+            if (titulo_chat) titulo_chat.textContent = _descricao_chat
+
+            let pode_enviar = true
+
+            if (_tipo_chat === "canal" && _descricao_chat_clicado) {
+                const emissor_canal_str = _descricao_chat_clicado.getAttribute("data-id-cargo-emissor")
+                const moderador_canal_str = _descricao_chat_clicado.getAttribute("data-id-cargo-moderador")
+
+                let emissor_cargo = null
+                let moderador_cargo = null
+
+                if (emissor_canal_str) emissor_cargo = parseInt(emissor_canal_str, 10)
+
+                if (emissor_cargo !== null) {
+                    pode_enviar = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario) && cargo_usuario >= emissor_cargo)
+                } else {
+                    pode_enviar = true
                 }
-                
+
+                if (!pode_enviar && moderador_cargo !== null && cargo_usuario === moderador_cargo) {
+                    pode_enviar = true
+                }
+
+                if (!pode_enviar) {
+                    if (input_chat) {
+                        input_chat.disabled = true
+                        input_chat.placeholder = "Você não possui permissão para mandar mensagem neste canal"
+                    }
+
+                    if (enviar_chat) enviar_chat.disabled = true
+                } else {
+                    if (input_chat) {
+                        input_chat.disabled = false
+                        resetar_placeholder()
+                    }
+                    
+                    if (enviar_chat) enviar_chat.disabled = false
+                }
+            } else {
+                if (input_chat) input_chat.disabled = false
                 if (enviar_chat) enviar_chat.disabled = false
+                resetar_placeholder()
             }
-        } else {
-            if (input_chat) input_chat.disabled = false
 
-            if (enviar_chat) enviar_chat.disabled = false
+            if (input_chat && !input_chat.disabled) input_chat.focus()
 
-            resetar_placeholder()
-        }
+            scroll_automatico = true
 
-        if (input_chat && !input_chat.disabled) input_chat.focus()
+            ajustar_altura()
+            carregar_mensagens()
 
-        scroll_automatico = true
+            if (timer) clearInterval(timer)
 
-        ajustar_altura()
-        carregar_mensagens()
-
-        if (timer) clearInterval(timer)
-        timer = setInterval(carregar_mensagens, 1000)
+            timer = setInterval(() => {
+                if (mensagens_chat && mensagens_chat.dataset.view === "chat") {
+                    carregar_mensagens()
+                }
+            }, 1000)
+        }, 0)
     }
 
     async function carregar_mensagens() {
         if (!chat_selecionado.tipo_chat || !chat_selecionado.id_chat) return
 
+        if (!mensagens_chat || mensagens_chat.dataset.view !== "chat") return
+
+        abortar_chat_fetch()
+
+        const controller = new AbortController()
+
+        if (mensagens_chat) mensagens_chat._fetchController = controller
+
         try {
-            const busca = await fetch(`/api/mensagens?tipo_chat=${chat_selecionado.tipo_chat}&id_chat=${chat_selecionado.id_chat}`)
-            
-            if (!busca.ok) {
-                console.error("Erro ao buscar mensagens:", busca.status)
+            const url = `/api/mensagens?tipo_chat=${encodeURIComponent(chat_selecionado.tipo_chat)}&id_chat=${encodeURIComponent(chat_selecionado.id_chat)}`
+            const resp = await fetch(url, { signal: controller.signal })
+
+            if (!resp.ok) {
+                console.error("Erro ao buscar mensagens:", resp.status)
                 return
             }
 
-            const mensagens = await busca.json()
+            const mensagens = await resp.json()
 
+            if (!mensagens_chat || mensagens_chat.dataset.view !== "chat") return
+            
             exibir_mensagens(mensagens)
-        } catch (erro) {
-            console.error("Erro ao buscar mensagens:", erro)
+        } catch (error) {
+            if (error && error.name === "AbortError") return
+            console.error("Erro ao buscar mensagens:", error)
+        } finally {
+            if (mensagens_chat) mensagens_chat._fetchController = null
         }
     }
 

@@ -3,6 +3,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!solicitacoes_canal) return
 
+        document.addEventListener("limpar_sessao_solicitacoes", () => {
+            try {
+                limpar_canal()
+            } catch (e) {
+                console.error("Erro ao limpar canal de solicitações via evento:", e)
+            }
+        })
+
         const cargo_usuario = solicitacoes_canal.dataset.cargoUsuario ? parseInt(solicitacoes_canal.dataset.cargoUsuario, 10) : null
 
         if (cargo_usuario !== 2) {
@@ -18,18 +26,31 @@ document.addEventListener("DOMContentLoaded", () => {
         let canal_selecionado = null
         let descricao_canal_selecionado = null
 
+        function abortar_solicitacoes_fetch() {
+                try {
+                        if (solicitacoes_canal && solicitacoes_canal._fetchController) {
+                                solicitacoes_canal._fetchController.abort();
+                        }
+                } catch (error) {
+                        console.error("Erro abortando fetch de solicitações:", error);
+                } finally {
+                        if (solicitacoes_canal) solicitacoes_canal._fetchController = null;
+                }
+        }
+
         function limpar_canal() {
+                abortar_solicitacoes_fetch();
+
                 if (canal_header) canal_header.classList.add("d-none")
-
                 if (canal_form) canal_form.classList.add("d-none")
-
                 if (titulo_canal) titulo_canal.textContent = ""
 
                 if (solicitacoes_canal) {
                         solicitacoes_canal.className = "d-flex justify-content-center align-items-center position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
-                        solicitacoes_canal.innerText = "Selecione uma categoria de solicitações"
+                        solicitacoes_canal.innerText = "Selecione um canal"
+                        solicitacoes_canal.dataset.view = ""
                 }
-                
+
                 if (descricao_canal_selecionado) {
                         descricao_canal_selecionado.classList.remove("text-danger", "fw-bold")
                         descricao_canal_selecionado = null
@@ -70,15 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 bootstrap_toast.show()
 
                 toast.addEventListener("hidden.bs.toast", () => container.remove())
-        }
-
-        function formatarHTML(texto_msg) {
-                return texto_msg
-                        .replaceAll("&", "&amp;")
-                        .replaceAll("<", "&lt;")
-                        .replaceAll(">", "&gt;")
-                        .replaceAll('"', "&quot;")
-                        .replaceAll("'", "&#039;")
         }
 
         function montar_solicitacao(solicitacao) {
@@ -221,17 +233,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         async function carregar_solicitacoes(canal) {
-                if (!canal) return
+        if (!canal) return
+        if (!solicitacoes_canal || solicitacoes_canal.dataset.view !== "solicitacoes") {
+            // se a view mudou enquanto aguardávamos, aborta
+            return
+        }
+
+        abortar_solicitacoes_fetch()
+                const controller = new AbortController()
+
+                if (solicitacoes_canal) solicitacoes_canal._fetchController = controller
 
                 try {
-                        const resposta = await fetch(`/api/solicitacoes?canal=${encodeURIComponent(canal)}`)
+                        const url = `/api/solicitacoes?canal=${encodeURIComponent(canal)}`
+                        const resposta = await fetch(url, { signal: controller.signal })
 
                         if (!resposta.ok) {
                                 mostrar_toast("Erro ao buscar solicitações", "danger")
+                                console.error("carregar_solicitacoes: resposta não ok", resposta.status)
                                 return
                         }
 
                         const lista = await resposta.json()
+
+                        if (!solicitacoes_canal || solicitacoes_canal.dataset.view !== "solicitacoes") {
+                                return
+                        }
 
                         solicitacoes_canal.innerHTML = ""
                         solicitacoes_canal.className = "position-absolute start-0 end-0 overflow-auto p-2 no-scrollbar"
@@ -251,8 +278,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 solicitacoes_canal.scrollTop = solicitacoes_canal.scrollHeight
                         })
                 } catch (erro) {
+                        if (erro && erro.name === "AbortError") return
                         console.error(erro)
                         mostrar_toast("Erro de rede ao buscar solicitações", "danger")
+                } finally {
+                        if (solicitacoes_canal) solicitacoes_canal._fetchController = null
                 }
         }
 
@@ -261,6 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         evento.preventDefault()
 
                         const canal = elemento.dataset.solicitacoesCanal
+
+                        if (!canal) return
 
                         if (canal_selecionado === canal) {
                                 canal_selecionado = null
@@ -277,11 +309,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         elemento.classList.add("text-danger", "fw-bold")
                         descricao_canal_selecionado = elemento
 
-                        if (canal_header) canal_header.classList.remove("d-none")
-                        if (canal_form) canal_form.classList.add("d-none")
-                        if (titulo_canal) titulo_canal.textContent = `Solicitações — ${elemento.textContent.trim()}`
+                        document.dispatchEvent(new Event("limpar_sessao_chat"))
 
-                        carregar_solicitacoes(canal)
+                        setTimeout(() => {
+                                if (solicitacoes_canal) solicitacoes_canal.dataset.view = "solicitacoes"
+                                if (canal_header) canal_header.classList.remove("d-none")
+                                if (canal_form) canal_form.classList.add("d-none")
+                                if (titulo_canal) titulo_canal.textContent = `Solicitações — ${elemento.textContent.trim()}`
+
+                                carregar_solicitacoes(canal)
+                        }, 0)
                 })
         })
 
