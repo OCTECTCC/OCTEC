@@ -279,8 +279,34 @@ document.addEventListener("DOMContentLoaded", () => {
             return
         }
 
+        const cargo_atual = (typeof cargo_usuario === "number" && !isNaN(cargo_usuario)) ? cargo_usuario : null
+        const eu_representante = mensagens_chat.dataset.representante === "true" || mensagens_chat.dataset.representante === true
+
         mensagens.forEach(msg => {
             const sou_eu = mensagem_usuario_atual(msg.emissor_msg)
+            const emissor = msg.emissor_msg || {}
+            const emissor_tipo = emissor.tipo_usuario || null
+            const emissor_representante = !!emissor.representante
+
+            let pode_deletar = false
+
+            if (sou_eu) {
+                pode_deletar = true
+            } else {
+                if (chat_selecionado.tipo_chat === "aula" || chat_selecionado.tipo_chat === "canal") {
+                    if (cargo_atual === 1) {
+                        if (eu_representante && emissor_tipo === "aluno" && emissor_representante === false) {
+                            pode_deletar = true
+                        }
+                    } else if (cargo_atual === 3) {
+                        if (emissor_tipo === "aluno") pode_deletar = true
+                    } else if (cargo_atual === 4) {
+                        if (emissor_tipo === "aluno" || emissor_tipo === "prof") pode_deletar = true
+                    } else if (cargo_atual === 5) {
+                        pode_deletar = true
+                    }
+                }
+            }
 
             const row = document.createElement("div")
             row.classList.add("d-flex", "w-100", "mb-2")
@@ -324,15 +350,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             top_container.appendChild(meta)
 
-            if (sou_eu) {
+            if (pode_deletar) {
                 const btn_exluir = document.createElement("button")
-                btn_exluir.className = "btn btn-sm btn-danger ms-2"
                 btn_exluir.title = "Excluir mensagem"
                 btn_exluir.type = "button"
-                btn_exluir.innerHTML = '<i class="bi bi-trash-fill"></i>'
                 btn_exluir.style.minWidth = "36px"
-
                 btn_exluir.dataset.idMsg = msg.id_msg
+                btn_exluir.tabIndex = 0
+
+                if (sou_eu) {
+                    btn_exluir.className = "btn btn-sm btn-danger ms-2"
+                    btn_exluir.innerHTML = '<i class="bi bi-trash-fill text-white"></i>'
+                } else {
+                    btn_exluir.className = "btn btn-sm ms-2"
+                    btn_exluir.style.background = "transparent"
+                    btn_exluir.style.border = "none"
+                    btn_exluir.style.padding = "0.25rem 0.45rem"
+                    btn_exluir.innerHTML = '<i class="bi bi-trash-fill text-danger"></i>'
+                }
 
                 btn_exluir.addEventListener("click", async () => {
                     const confirm_label = rotulo_emissor || nome_usuario || "esta mensagem"
@@ -352,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         try {
                             json = await resp.clone().json()
-                        } catch(e) {
+                        } catch (error) {
                             json = null
                         }
 
@@ -365,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         row.remove()
-                        row.remove()
+
                         mostrar_toast("Mensagem excluída", "success")
                     } catch (erro) {
                         console.error("Erro fetch excluir:", erro)
@@ -387,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
 
         ajustar_altura()
-        
+
         if (scroll_automatico) {
             requestAnimationFrame(() => {
                 const scroll_maximo = mensagens_chat.scrollHeight - mensagens_chat.clientHeight

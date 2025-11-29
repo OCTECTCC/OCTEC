@@ -190,13 +190,13 @@
                             </div>
                         </aside>
                         <section class="d-flex flex-column col-12 col-md-9 p-4 position-relative" style="min-height: 0">
-                            <div id="chat_header" class="d-none position-absolute top-0 start-0 end-0 ps-2 py-2 z-3">
+                            <div id="chat_header" class="d-none position-absolute top-0 start-0 end-0 ps-2 py-2 z-2">
                                 <div class="d-flex justify-content-center align-items-center">
                                     <h5 id="titulo_chat" class="px-3 py-2 rounded text-bg-danger mb-0"></h5>
                                 </div>
                             </div>
-                            <div id="mensagens_chat" class="d-flex justify-content-center align-items-center position-absolute top-0 start-0 end-0 bottom-0 overflow-auto p-2 no-scrollbar" data-current-user="{{ current_user.get_id() }}" data-cargo-usuario="{{ current_user.id_cargo_usuario }}">Selecione um canal</div>
-                            <div id="chat_form" class="d-none position-absolute bottom-0 start-0 end-0 px-3 z-3">
+                            <div id="mensagens_chat" class="d-flex justify-content-center align-items-center position-absolute top-0 start-0 end-0 bottom-0 overflow-auto p-2 no-scrollbar" data-current-user="{{ current_user.get_id() }}" data-cargo-usuario="{{ current_user.id_cargo_usuario }}" data-representante="{{ current_user.representante_aluno | default(false) | tojson }}">Selecione um canal</div>
+                            <div id="chat_form" class="d-none position-absolute bottom-0 start-0 end-0 px-3 z-2">
                                 <form id="form_chat" class="d-flex gap-2 p-2 bg-transparent" onsubmit="return false" autocomplete="off">
                                     <input id="input_chat" class="form-control p-2" type="text" maxlength="200" placeholder="Escreva uma mensagem" required disabled>
                                     <div class="d-flex align-items-center">
@@ -222,7 +222,7 @@
         {% endblock %}
         {% with mensagens = get_flashed_messages(with_categories=true) %}
             {% if mensagens %}
-                <div class="position-fixed bottom-0 end-0 p-3 z-1">
+                <div class="position-fixed bottom-0 end-0 p-3 z-3">
                     {% for categoria, mensagem in mensagens %}
                         {% if categoria == 'success' %}
                             {% set cor = 'success' %}

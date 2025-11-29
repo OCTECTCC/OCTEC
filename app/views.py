@@ -275,26 +275,31 @@ def api_mensagens():
             emissor_msg["id_usuario"] = msg.id_aluno_msg
             emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno
             emissor_msg["rotulo_emissor"] = rotulo_emissor("aluno", msg.aluno_msg)
+            emissor_msg["representante"] = bool(getattr(msg.aluno_msg, "representante_aluno", False))
         elif msg.tec_msg:
             emissor_msg["tipo_usuario"] = "tec"
             emissor_msg["id_usuario"] = msg.id_tec_msg
             emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec
             emissor_msg["rotulo_emissor"] = rotulo_emissor("tec", msg.tec_msg)
+            emissor_msg["representante"] = False
         elif msg.prof_msg:
             emissor_msg["tipo_usuario"] = "prof"
             emissor_msg["id_usuario"] = msg.id_prof_msg
             emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof
             emissor_msg["rotulo_emissor"] = rotulo_emissor("prof", msg.prof_msg)
+            emissor_msg["representante"] = False
         elif msg.coor_msg:
             emissor_msg["tipo_usuario"] = "coor"
             emissor_msg["id_usuario"] = msg.id_coor_msg
             emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor
             emissor_msg["rotulo_emissor"] = rotulo_emissor("coor", msg.coor_msg)
+            emissor_msg["representante"] = False
         elif msg.dir_msg:
             emissor_msg["tipo_usuario"] = "dir"
             emissor_msg["id_usuario"] = msg.id_dir_msg
             emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir
             emissor_msg["rotulo_emissor"] = rotulo_emissor("dir", msg.dir_msg)
+            emissor_msg["representante"] = False
 
         res_msg.append({
             "id_msg": msg.id_msg,
@@ -458,56 +463,118 @@ def api_excluir_mensagem():
         return jsonify({"error": "Mensagem não encontrada"}), 404
     
     id_usuario_str = current_user.get_id() if hasattr(current_user, "get_id") else None
-    tipo_usuario = None
-    id_usuario = None
+    tipo_usuario_atual = None
+    id_usuario_atual = None
 
     if id_usuario_str and "-" in id_usuario_str:
-        tipo_usuario, id_usuario_bruto = id_usuario_str.split("-", 1)
+        tipo_usuario_atual, id_usuario_bruto = id_usuario_str.split("-", 1)
 
         try:
-            id_usuario = int(id_usuario_bruto)
+            id_usuario_atual = int(id_usuario_bruto)
         except:
-            id_usuario = None
+            id_usuario_atual = None
     else:
         if hasattr(current_user, "id_aluno"):
-            tipo_usuario, id_usuario = "aluno", getattr(current_user, "id_aluno")
+            tipo_usuario_atual, id_usuario_atual = "aluno", getattr(current_user, "id_aluno")
         elif hasattr(current_user, "id_tec"):
-            tipo_usuario, id_usuario = "tec", getattr(current_user, "id_tec")
+            tipo_usuario_atual, id_usuario_atual = "tec", getattr(current_user, "id_tec")
         elif hasattr(current_user, "id_prof"):
-            tipo_usuario, id_usuario = "prof", getattr(current_user, "id_prof")
+            tipo_usuario_atual, id_usuario_atual = "prof", getattr(current_user, "id_prof")
         elif hasattr(current_user, "id_coor"):
-            tipo_usuario, id_usuario = "coor", getattr(current_user, "id_coor")
+            tipo_usuario_atual, id_usuario_atual = "coor", getattr(current_user, "id_coor")
         elif hasattr(current_user, "id_dir"):
-            tipo_usuario, id_usuario = "dir", getattr(current_user, "id_dir")
+            tipo_usuario_atual, id_usuario_atual = "dir", getattr(current_user, "id_dir")
+
+    emissor_tipo = None
+    emissor_obj = None
+
+    if msg.aluno_msg:
+        emissor_tipo = "aluno"
+        emissor_obj = msg.aluno_msg
+    elif msg.tec_msg:
+        emissor_tipo = "tec"
+        emissor_obj = msg.tec_msg
+    elif msg.prof_msg:
+        emissor_tipo = "prof"
+        emissor_obj = msg.prof_msg
+    elif msg.coor_msg:
+        emissor_tipo = "coor"
+        emissor_obj = msg.coor_msg
+    elif msg.dir_msg:
+        emissor_tipo = "dir"
+        emissor_obj = msg.dir_msg
 
     pertence = False
 
     try:
-        if tipo_usuario == "aluno" and msg.id_aluno_msg == id_usuario:
+        if tipo_usuario_atual == "aluno" and msg.id_aluno_msg == id_usuario_atual:
             pertence = True
-        elif tipo_usuario == "tec" and msg.id_tec_msg == id_usuario:
+        elif tipo_usuario_atual == "tec" and msg.id_tec_msg == id_usuario_atual:
             pertence = True
-        elif tipo_usuario == "prof" and msg.id_prof_msg == id_usuario:
+        elif tipo_usuario_atual == "prof" and msg.id_prof_msg == id_usuario_atual:
             pertence = True
-        elif tipo_usuario == "coor" and msg.id_coor_msg == id_usuario:
+        elif tipo_usuario_atual == "coor" and msg.id_coor_msg == id_usuario_atual:
             pertence = True
-        elif tipo_usuario == "dir" and msg.id_dir_msg == id_usuario:
+        elif tipo_usuario_atual == "dir" and msg.id_dir_msg == id_usuario_atual:
             pertence = True
     except Exception:
         pertence = False
 
-    if not pertence:
+    if pertence:
+        try:
+            db.session.delete(msg)
+            db.session.commit()
+            return jsonify({"success": True})
+        except Exception as exception:
+            current_app.logger.exception("Erro ao excluir mensagem (id=%s): %s", id_msg, str(exception))
+            db.session.rollback()
+            return jsonify({"error": "Erro interno ao excluir mensagem", "detail": str(exception)}), 500
+        
+    tipo_aula = msg.id_aula_msg is not None
+    tipo_canal = msg.id_canal_msg is not None
+
+    if not (tipo_aula or tipo_canal):
+        return jsonify({"error": "Você não tem permissão para excluir esta mensagem"}), 403
+
+    try:
+        cargo_atual = int(getattr(current_user, "id_cargo_usuario", 0))
+    except Exception:
+        cargo_atual = 0
+
+    emissor_representante = False
+
+    if emissor_tipo == "aluno" and emissor_obj is not None:
+        emissor_representante = bool(getattr(emissor_obj, "representante_aluno", False))
+
+    permitido = False
+
+    try:
+        if cargo_atual == 1:
+            if getattr(current_user, "representante_aluno", False) and emissor_tipo == "aluno" and emissor_representante == False:
+                permitido = True
+        elif cargo_atual == 3:
+            if emissor_tipo == "aluno":
+                permitido = True
+        elif cargo_atual == 4:
+            if emissor_tipo in ("aluno", "prof"):
+                permitido = True
+        elif cargo_atual == 5:
+            permitido = True
+        else:
+            permitido = False
+    except Exception:
+        permitido = False
+
+    if not permitido:
         return jsonify({"error": "Você não tem permissão para excluir esta mensagem"}), 403
 
     try:
         db.session.delete(msg)
         db.session.commit()
-
         return jsonify({"success": True})
     except Exception as exception:
         current_app.logger.exception("Erro ao excluir mensagem (id=%s): %s", id_msg, str(exception))
         db.session.rollback()
-        
         return jsonify({"error": "Erro interno ao excluir mensagem", "detail": str(exception)}), 500
 
 @views.route("/api/solicitacoes", methods=["GET"])
@@ -1154,7 +1221,7 @@ def primeiro_acesso():
                 usuario.senha_aluno = generate_password_hash(senha_usuario)
             elif tipo_usuario == 2:
                 usuario = Tecnicos.query.filter_by(login_tec=login_usuario).first()
-                cpf_usuario = usuario.cpf_aluno if usuario else None
+                cpf_usuario = usuario.cpf_tec if usuario else None
                 validacao_senha = getattr(usuario, "check_password", None)
                 cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
 
@@ -1170,7 +1237,7 @@ def primeiro_acesso():
                 usuario.senha_tec = generate_password_hash(senha_usuario)
             elif tipo_usuario == 3:
                 usuario = Professores.query.filter_by(login_prof=login_usuario).first()
-                cpf_usuario = usuario.cpf_aluno if usuario else None
+                cpf_usuario = usuario.cpf_prof if usuario else None
                 validacao_senha = getattr(usuario, "check_password", None)
                 cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
 
@@ -1186,7 +1253,7 @@ def primeiro_acesso():
                 usuario.senha_prof = generate_password_hash(senha_usuario)
             elif tipo_usuario == 4:
                 usuario = Coordenadores.query.filter_by(login_coor=login_usuario).first()
-                cpf_usuario = usuario.cpf_aluno if usuario else None
+                cpf_usuario = usuario.cpf_coor if usuario else None
                 validacao_senha = getattr(usuario, "check_password", None)
                 cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
 
@@ -1202,7 +1269,7 @@ def primeiro_acesso():
                 usuario.senha_coor = generate_password_hash(senha_usuario)
             elif tipo_usuario == 5:
                 usuario = Diretores.query.filter_by(login_dir=login_usuario).first()
-                cpf_usuario = usuario.cpf_aluno if usuario else None
+                cpf_usuario = usuario.cpf_dir if usuario else None
                 validacao_senha = getattr(usuario, "check_password", None)
                 cpf_valido = validacao_senha(cpf_usuario) if usuario and cpf_usuario and validacao_senha else False
 
