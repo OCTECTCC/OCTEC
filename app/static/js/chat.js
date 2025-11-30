@@ -82,12 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function abortar_chat_fetch() {
         try {
             if (mensagens_chat && mensagens_chat._fetchController) {
-                mensagens_chat._fetchController.abort();
+                mensagens_chat._fetchController.abort()
             }
         } catch (error) {
-            console.error("Erro abortando fetch do chat:", error);
+            console.error("Erro abortando fetch do chat:", error)
         } finally {
-            if (mensagens_chat) mensagens_chat._fetchController = null;
+            if (mensagens_chat) mensagens_chat._fetchController = null
         }
     }
 
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
             descricao_chat_selecionado = null
         }
 
-        abortar_chat_fetch();
+        abortar_chat_fetch()
         scroll_automatico = false
         ajustar_altura()
     }

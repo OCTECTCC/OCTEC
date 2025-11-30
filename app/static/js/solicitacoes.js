@@ -29,17 +29,17 @@ document.addEventListener("DOMContentLoaded", () => {
         function abortar_solicitacoes_fetch() {
                 try {
                         if (solicitacoes_canal && solicitacoes_canal._fetchController) {
-                                solicitacoes_canal._fetchController.abort();
+                                solicitacoes_canal._fetchController.abort()
                         }
                 } catch (error) {
-                        console.error("Erro abortando fetch de solicitações:", error);
+                        console.error("Erro abortando fetch de solicitações:", error)
                 } finally {
-                        if (solicitacoes_canal) solicitacoes_canal._fetchController = null;
+                        if (solicitacoes_canal) solicitacoes_canal._fetchController = null
                 }
         }
 
         function limpar_canal() {
-                abortar_solicitacoes_fetch();
+                abortar_solicitacoes_fetch()
 
                 if (canal_header) canal_header.classList.add("d-none")
                 if (canal_form) canal_form.classList.add("d-none")

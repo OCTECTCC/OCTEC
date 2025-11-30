@@ -10,40 +10,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btn.setAttribute("tabindex", "-1")
 
-    const parent = btn.parentNode;
-    const placeholder = document.createComment('pw-btn-placeholder');
+    const parent = btn.parentNode
+    const placeholder = document.createComment('pw-btn-placeholder')
 
-    btn.classList.remove('d-none');
-    parent.replaceChild(placeholder, btn);
+    btn.classList.remove('d-none')
+    parent.replaceChild(placeholder, btn)
 
-    let mostrar = false;
+    let mostrar = false
     let input_hover = false
     let button_hover = false
     let input_focus = false
 
     function mostrar_botao() {
       if (!mostrar) {
-        parent.replaceChild(btn, placeholder);
-        mostrar = true;
+        parent.replaceChild(btn, placeholder)
+        mostrar = true
       }
     }
 
     function esconder_botao() {
       if (!input_hover && !button_hover && !input_focus && mostrar) {
-        parent.replaceChild(placeholder, btn);
-        mostrar = false;
+        parent.replaceChild(placeholder, btn)
+        mostrar = false
       }
     }
 
     function mostrar_senha() {
       if (input.type === 'password') {
-        input.type = 'text';
-        btn.querySelector('i')?.classList.replace('bi-eye', 'bi-eye-slash');
-        btn.setAttribute('title', 'Ocultar senha');
+        input.type = 'text'
+        btn.querySelector('i')?.classList.replace('bi-eye', 'bi-eye-slash')
+        btn.setAttribute('title', 'Ocultar senha')
       } else {
-        input.type = 'password';
-        btn.querySelector('i')?.classList.replace('bi-eye-slash', 'bi-eye');
-        btn.setAttribute('title', 'Mostrar senha');
+        input.type = 'password'
+        btn.querySelector('i')?.classList.replace('bi-eye-slash', 'bi-eye')
+        btn.setAttribute('title', 'Mostrar senha')
       }
 
       try {
@@ -55,13 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         btn.blur()
       } catch (error) {}
-    });
+    })
 
     btn.addEventListener('keydown', (evento) => {
       if (evento.key === 'Tab') {
-        evento.preventDefault();
+        evento.preventDefault()
       }
-    });
+    })
 
     input.addEventListener('mouseenter', () => {
       input_hover = true

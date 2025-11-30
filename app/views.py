@@ -1168,6 +1168,30 @@ def alterar_senha():
 
     return render_template("alterar_senha.html")
 
+@views.route("/perfil/editar_perfil", methods=["GET", "POST"])
+@login_required
+def editar_perfil():
+    if request.method == "POST":
+        cor = request.form.get("cor_avatar", "").strip()
+
+        if not re.match(r"^#[0-9A-Fa-f]{6}$", cor):
+            flash("Cor inválida.", "danger")
+            return redirect(url_for("views.editar_perfil"))
+
+        try:
+            current_user.cor_avatar = cor
+            db.session.add(current_user)
+            db.session.commit()
+            flash("Cor do perfil atualizada com sucesso", "success")
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            current_app.logger.exception("Erro ao atualizar cor do avatar")
+            flash("Ocorreu um erro ao salvar a cor. Tente novamente", "danger")
+        
+        return redirect(url_for("views.perfil"))
+
+    return render_template("editar_perfil.html")
+
 @views.route("/primeiro_acesso", methods=["GET","POST"])
 def primeiro_acesso():
     if current_user.is_authenticated:

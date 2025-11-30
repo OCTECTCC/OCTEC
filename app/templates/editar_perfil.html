@@ -1,0 +1,130 @@
+{% extends "index.html" %}
+{% block title %}Editar perfil{% endblock %}
+{% block body %}
+  <main class="d-flex flex-column vh-100 text-bg-dark">
+    <div class="flex-grow-1 row g-0">
+      <aside class="d-flex flex-column col-12 col-md-2 text-bg-light">
+        <div class="d-flex justify-content-between align-items-center border-bottom p-3">
+          <h6 class="mb-0">Perfil</h6>
+          <a href="{{ url_for('views.perfil') }}" class="btn btn-sm btn-outline-dark">
+            <i class="bi bi-arrow-left"></i>
+          </a>
+        </div>
+        <nav class="flex-grow-1 list-group list-group-flush overflow-auto">
+          <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Visão geral</a>
+          <a href="{{ url_for('views.editar_perfil') }}" class="list-group-item list-group-item-action text-bg-danger">Editar perfil</a>
+          <a href="{{ url_for('views.alterar_senha') }}" class="list-group-item list-group-item-action">Alterar senha</a>
+          <a href="{{ url_for('views.logout') }}" class="list-group-item list-group-item-action text-danger border-bottom">Sair</a>
+        </nav>
+        <div class="d-flex align-items-center p-2 border-top">
+          <img src="{{ url_for('static', filename='img/logo_V2.png') }}" alt="OCTEC" style="height: 40px">
+          <span class="ms-2 fw-semibold">OCTEC</span>
+        </div>
+      </aside>
+      <section class="d-flex flex-column col-12 col-md-10">
+        <div class="p-4 overflow-auto">
+          <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+              <a href="{{ url_for('views.perfil') }}" class="btn btn-sm btn-outline-dark mb-3">
+                <i class="bi bi-arrow-left"></i> Voltar ao perfil
+              </a>
+              <div class="card">
+                <div class="card-body">
+                  <form id="form-editar-perfil" method="post" action="{{ url_for('views.editar_perfil') }}">
+                    <div class="text-center mb-3">
+                      <div id="avatar-preview" class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3 text-white" data-color="{{ current_user.cor_avatar | default('#6c757d') }}" style="width:120px;height:120px;font-size:32px;">
+                        {% if current_user.id_cargo_usuario == 1 %}
+                          {{ current_user.nome_aluno[0]|upper }}
+                        {% elif current_user.id_cargo_usuario == 2 %}
+                          {{ current_user.nome_tec[0]|upper }}
+                        {% elif current_user.id_cargo_usuario == 3 %}
+                          {{ current_user.nome_prof[0]|upper }}
+                        {% elif current_user.id_cargo_usuario == 4 %}
+                          {{ current_user.nome_coor[0]|upper }}
+                        {% elif current_user.id_cargo_usuario == 5 %}
+                          {{ current_user.nome_dir[0]|upper }}
+                        {% endif %}
+                      </div>
+                      <h5 class="mb-0">
+                        {% if current_user.id_cargo_usuario == 1 %}
+                          {{ current_user.nome_aluno }}
+                        {% elif current_user.id_cargo_usuario == 2 %}
+                          {{ current_user.nome_tec }}
+                        {% elif current_user.id_cargo_usuario == 3 %}
+                          {{ current_user.nome_prof }}
+                        {% elif current_user.id_cargo_usuario == 4 %}
+                          {{ current_user.nome_coor }}
+                        {% elif current_user.id_cargo_usuario == 5 %}
+                          {{ current_user.nome_dir }}
+                        {% endif %}
+                      </h5>
+                      <p class="text-muted small mb-2">
+                        {% if current_user.id_cargo_usuario == 1 %}
+                          {% if current_user.sexo_aluno == "M" %}
+                              {{ current_user.cargo_usuario.descricao_cargo }}
+                          {% elif current_user.sexo_aluno == "F" %}
+                              Aluna
+                          {% endif %}
+                        {% elif current_user.id_cargo_usuario == 2 %}
+                            {% if current_user.sexo_tec == "M" %}
+                                {{ current_user.cargo_usuario.descricao_cargo }}
+                            {% elif current_user.sexo_tec == "F" %}
+                                Técnica
+                            {% endif %}
+                        {% elif current_user.id_cargo_usuario == 3 %}
+                            {% if current_user.sexo_prof == "M" %}
+                                {{ current_user.cargo_usuario.descricao_cargo }}
+                            {% elif current_user.sexo_prof == "F" %}
+                                Professora
+                            {% endif %}
+                        {% elif current_user.id_cargo_usuario == 4 %}
+                            {% if current_user.sexo_coor == "M" %}
+                                {{ current_user.cargo_usuario.descricao_cargo }}
+                            {% elif current_user.sexo_coor == "F" %}
+                                Coordenadora
+                            {% endif %}
+                        {% elif current_user.id_cargo_usuario == 5 %}
+                            {% if current_user.sexo_dir == "M" %}
+                                {{ current_user.cargo_usuario.descricao_cargo }}
+                            {% elif current_user.sexo_dir == "F" %}
+                                Diretora
+                            {% endif %}
+                        {% endif %}
+                        {% if current_user.id_cargo_usuario == 1 %}
+                            {% if current_user.representante_aluno == True %}
+                                - Representante
+                            {% endif %}
+                        {% endif %}
+                      </p>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                      <label class="form-label">Escolha a cor do avatar</label>
+                      <input type="hidden" name="cor_avatar" id="cor_avatar_input" value="{{ current_user.cor_avatar | default('#6c757d') }}">
+                      <div class="d-flex justify-content-center flex-wrap gap-2">
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#dc3545" aria-label="Vermelho" style="width:40px;height:40px;background-color:#dc3545;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#0d6efd" aria-label="Azul" style="width:40px;height:40px;background-color:#0d6efd;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#198754" aria-label="Verde" style="width:40px;height:40px;background-color:#198754;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#ffc107" aria-label="Amarelo" style="width:40px;height:40px;background-color:#ffc107;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#fd7e14" aria-label="Laranja" style="width:40px;height:40px;background-color:#fd7e14;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#6f42c1" aria-label="Roxo" style="width:40px;height:40px;background-color:#6f42c1;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#000000" aria-label="Preto" style="width:40px;height:40px;background-color:#000000;"></button>
+                        <button type="button" class="btn p-0 rounded-circle color-choice" data-color="#6c757d" aria-label="Cinza" style="width:40px;height:40px;background-color:#6c757d;"></button>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                      <a href="{{ url_for('views.perfil') }}" class="btn btn-secondary btn-sm">Cancelar</a>
+                      <button type="submit" class="btn btn-danger btn-sm">Salvar</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="{{ url_for('static', filename='js/editar_perfil.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cor_avatar.js') }}"></script>
+{% endblock %}

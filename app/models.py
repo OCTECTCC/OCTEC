@@ -99,6 +99,7 @@ class Alunos(db.Model, UserMixin):
     ano_origem_aluno = db.Column(db.Integer, nullable=False)
     semestre_origem_aluno = db.Column(db.Integer, nullable=False)
     representante_aluno = db.Column(db.Boolean, nullable=False, default=False)
+    cor_avatar = db.Column(db.String(7), nullable=False, default="#6c757d")
 
     id_curso_aluno = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"), nullable=False)
     curso_aluno = db.relationship("Cursos", back_populates="alunos_curso")
@@ -112,7 +113,7 @@ class Alunos(db.Model, UserMixin):
     mensagens_aluno = db.relationship("Mensagens", back_populates="aluno_msg")
     solicitacoes_aluno = db.relationship("Solicitacoes", back_populates="aluno_solict")
 
-    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, sexo_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
+    def __init__(self, rm_aluno, cpf_aluno, nome_aluno, sexo_aluno, modulo_aluno, turma_aluno, situacao_aluno, ano_origem_aluno, semestre_origem_aluno, representante_aluno, cor_avatar, id_cargo_usuario, id_curso_aluno, id_etec_aluno, senha_texto=None):
         self.rm_aluno = rm_aluno
         self.cpf_aluno = cpf_aluno
         self.nome_aluno = nome_aluno
@@ -123,6 +124,7 @@ class Alunos(db.Model, UserMixin):
         self.ano_origem_aluno = ano_origem_aluno
         self.semestre_origem_aluno = semestre_origem_aluno
         self.representante_aluno = representante_aluno
+        self.cor_avatar = cor_avatar
         self.id_cargo_usuario = id_cargo_usuario
         self.id_curso_aluno = id_curso_aluno
         self.id_etec_aluno = id_etec_aluno
@@ -153,6 +155,7 @@ class Tecnicos(db.Model, UserMixin):
     cpf_tec = db.Column(db.String(11), nullable=False)
     nome_tec = db.Column(db.String(128), nullable=False)
     sexo_tec = db.Column(db.String(1), nullable=False)
+    cor_avatar = db.Column(db.String(7), nullable=False, default="#6c757d")
 
     id_etec_tec = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_tec = db.relationship("Etecs", back_populates="tecnicos_etec")
@@ -163,11 +166,12 @@ class Tecnicos(db.Model, UserMixin):
     mensagens_tec = db.relationship("Mensagens", back_populates="tec_msg")
     solicitacoes_tec = db.relationship("Solicitacoes", back_populates="tec_solict")
 
-    def __init__(self, login_tec, cpf_tec, nome_tec, sexo_tec, id_cargo_usuario, id_etec_tec, senha_texto=None):
+    def __init__(self, login_tec, cpf_tec, nome_tec, sexo_tec, cor_avatar, id_cargo_usuario, id_etec_tec, senha_texto=None):
         self.login_tec = login_tec
         self.cpf_tec = cpf_tec
         self.nome_tec = nome_tec
         self.sexo_tec = sexo_tec
+        self.cor_avatar = cor_avatar
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_tec = id_etec_tec
         if senha_texto:
@@ -197,6 +201,7 @@ class Professores(db.Model, UserMixin):
     nome_prof = db.Column(db.String(128), nullable=False)
     sexo_prof = db.Column(db.String(1), nullable=False)
     biblioteca_prof = db.Column(db.Boolean, nullable=False, default=False)
+    cor_avatar = db.Column(db.String(7), nullable=False, default="#6c757d")
 
     id_etec_prof = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_prof = db.relationship("Etecs", back_populates="professores_etec")
@@ -208,12 +213,13 @@ class Professores(db.Model, UserMixin):
     mensagens_prof = db.relationship("Mensagens", back_populates="prof_msg")
     solicitacoes_prof = db.relationship("Solicitacoes", back_populates="prof_solict")
 
-    def __init__(self, login_prof, cpf_prof, nome_prof, sexo_prof, biblioteca_prof, id_cargo_usuario, id_etec_prof, senha_texto=None):
+    def __init__(self, login_prof, cpf_prof, nome_prof, sexo_prof, biblioteca_prof, cor_avatar, id_cargo_usuario, id_etec_prof, senha_texto=None):
         self.login_prof = login_prof
         self.cpf_prof = cpf_prof
         self.nome_prof = nome_prof
         self.sexo_prof = sexo_prof
         self.biblioteca_prof = biblioteca_prof
+        self.cor_avatar = cor_avatar
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_prof = id_etec_prof
         if senha_texto:
@@ -244,6 +250,7 @@ class Coordenadores(db.Model, UserMixin):
     sexo_coor = db.Column(db.String(1), nullable=False)
     ensino_medio_coor = db.Column(db.Boolean, nullable=False, default=False)
     pedagogico_coor = db.Column(db.Boolean, nullable=False, default=False)
+    cor_avatar = db.Column(db.String(7), nullable=False, default="#6c757d")
 
     id_etec_coor = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_coor = db.relationship("Etecs", back_populates="coordenadores_etec")
@@ -255,13 +262,14 @@ class Coordenadores(db.Model, UserMixin):
     mensagens_coor = db.relationship("Mensagens", back_populates="coor_msg")
     solicitacoes_coor = db.relationship("Solicitacoes", back_populates="coor_solict")
 
-    def __init__(self, login_coor, cpf_coor, nome_coor, sexo_coor, ensino_medio_coor, pedagogico_coor, id_cargo_usuario, id_etec_coor, senha_texto=None):
+    def __init__(self, login_coor, cpf_coor, nome_coor, sexo_coor, ensino_medio_coor, pedagogico_coor, cor_avatar, id_cargo_usuario, id_etec_coor, senha_texto=None):
         self.login_coor = login_coor
         self.cpf_coor = cpf_coor
         self.nome_coor = nome_coor
         self.sexo_coor = sexo_coor
         self.ensino_medio_coor = ensino_medio_coor
         self.pedagogico_coor = pedagogico_coor
+        self.cor_avatar = cor_avatar
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_coor = id_etec_coor
         if senha_texto:
@@ -290,6 +298,7 @@ class Diretores(db.Model, UserMixin):
     cpf_dir = db.Column(db.String(11), nullable=False)
     nome_dir = db.Column(db.String(128), nullable=False)
     sexo_dir = db.Column(db.String(1), nullable=False)
+    cor_avatar = db.Column(db.String(7), nullable=False, default="#6c757d")
 
     id_etec_dir = db.Column(db.Integer, db.ForeignKey("etecs.id_etec"), nullable=False)
     etec_dir = db.relationship("Etecs", back_populates="diretor_etec")
@@ -300,11 +309,12 @@ class Diretores(db.Model, UserMixin):
     mensagens_dir = db.relationship("Mensagens", back_populates="dir_msg")
     solicitacoes_dir = db.relationship("Solicitacoes", back_populates="dir_solict")
 
-    def __init__(self, login_dir, cpf_dir, nome_dir, sexo_dir, id_cargo_usuario, id_etec_dir, senha_texto=None):
+    def __init__(self, login_dir, cpf_dir, nome_dir, sexo_dir, cor_avatar, id_cargo_usuario, id_etec_dir, senha_texto=None):
         self.login_dir = login_dir
         self.cpf_dir = cpf_dir
         self.nome_dir = nome_dir
         self.sexo_dir = sexo_dir
+        self.cor_avatar = cor_avatar
         self.id_cargo_usuario = id_cargo_usuario
         self.id_etec_dir = id_etec_dir
         if senha_texto:
