@@ -94,26 +94,62 @@ document.addEventListener('DOMContentLoaded', function () {
     async function solicitarRedefinicao(event) {
         event.preventDefault()
 
+        const link_solicitar = document.getElementById('link_solicitar_redefinicao')
+        
+        if (link_solicitar) link_solicitar.disabled = true
+
         const tipo = document.getElementById('select_usuario').value
         const etec = document.getElementById('input_etec').value.trim()
         const login = document.getElementById('input_login').value.trim()
         const cpf_bruto = document.getElementById('input_senha').value.trim()
 
-        if (!tipo) { mostrar_toast("Selecione o tipo de usuário", "warning"); return }
+        if (!tipo) {
+            mostrar_toast("Selecione o tipo de usuário", "warning")
 
-        if (!etec || etec.length !== 3) { mostrar_toast("Informe o código da ETEC (3 dígitos)", "warning"); return }
+            if (link_solicitar) link_solicitar.disabled = false
 
-        if (!login) { mostrar_toast("Informe seu login / RM", "warning"); return }
-
-        if (!cpf_bruto) { mostrar_toast("Informe seu CPF no campo 'Senha' para confirmar a solicitação", "warning"); return }
-
-        const digitos_cpf = (cpf_bruto || "").replace(/\D/g, "")
-        if (digitos_cpf.length !== 11) {
-            mostrar_toast("CPF inválido. Digite os 11 dígitos do CPF (somente números)", "warning")
             return
         }
 
-        if (!confirm("Deseja solicitar a redefinição de senha com esses dados?")) return
+        if (!etec || etec.length !== 3) {
+            mostrar_toast("Informe o código da ETEC (3 dígitos)", "warning")
+
+            if (link_solicitar) link_solicitar.disabled = false
+            
+            return
+        }
+
+        if (!login) {
+            mostrar_toast("Informe seu login / RM", "warning")
+
+            if (link_solicitar) link_solicitar.disabled = false
+
+            return
+        }
+
+        if (!cpf_bruto) {
+            mostrar_toast("Informe seu CPF no campo 'Senha' para confirmar a solicitação", "warning")
+
+            if (link_solicitar) link_solicitar.disabled = false
+
+            return
+        }
+
+        const digitos_cpf = (cpf_bruto || "").replace(/\D/g, "")
+
+        if (digitos_cpf.length !== 11) {
+            mostrar_toast("CPF inválido. Digite os 11 dígitos do CPF (somente números)", "warning")
+
+            if (link_solicitar) link_solicitar.disabled = false
+
+            return
+        }
+
+        if (!confirm("Deseja solicitar a redefinição de senha com esses dados?")) {
+            if (link_solicitar) link_solicitar.disabled = false
+            
+            return
+        }
 
         try {
             const resp = await fetch("/api/solicitacoes/solicitar", {
@@ -134,6 +170,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch(e) {}
 
             if (resp.status === 201) {
+                limpar_campos()
+
                 mostrar_toast("Solicitação criada com sucesso", "success")
             } else if (resp.status === 409) {
                 mostrar_toast(json.error || "Já existe uma solicitação pendente", "warning")
@@ -142,11 +180,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (err) {
             console.error(err)
+
             mostrar_toast("Erro de rede ao enviar solicitação", "danger")
+        } finally {
+            if (link_solicitar) link_solicitar.disabled = false
         }
     }
 
-    const linkSolicitar = document.getElementById('link_solicitar_redefinicao')
+    const link_solicitar = document.getElementById('link_solicitar_redefinicao')
     
-    if (linkSolicitar) linkSolicitar.addEventListener('click', solicitarRedefinicao)
+    if (link_solicitar) link_solicitar.addEventListener('click', solicitarRedefinicao)
 })
