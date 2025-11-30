@@ -55,6 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         descricao_canal_selecionado.classList.remove("text-danger", "fw-bold")
                         descricao_canal_selecionado = null
                 }
+
+                setTimeout(() => window.dispatchEvent(new Event("resize")), 0)
         }
 
         function mostrar_toast(mensagem, tipo = "success") {
@@ -313,9 +315,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         setTimeout(() => {
                                 if (solicitacoes_canal) solicitacoes_canal.dataset.view = "solicitacoes"
+
                                 if (canal_header) canal_header.classList.remove("d-none")
                                 if (canal_form) canal_form.classList.add("d-none")
                                 if (titulo_canal) titulo_canal.textContent = `Solicitações — ${elemento.textContent.trim()}`
+
+                                setTimeout(() => {
+                                        window.dispatchEvent(new Event("resize"))
+                                }, 0)
 
                                 carregar_solicitacoes(canal)
                         }, 0)
