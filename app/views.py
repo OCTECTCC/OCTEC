@@ -276,30 +276,35 @@ def api_mensagens():
             emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno
             emissor_msg["rotulo_emissor"] = rotulo_emissor("aluno", msg.aluno_msg)
             emissor_msg["representante"] = bool(getattr(msg.aluno_msg, "representante_aluno", False))
+            emissor_msg["cor_avatar"] = getattr(msg.aluno_msg, "cor_avatar", None)
         elif msg.tec_msg:
             emissor_msg["tipo_usuario"] = "tec"
             emissor_msg["id_usuario"] = msg.id_tec_msg
             emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec
             emissor_msg["rotulo_emissor"] = rotulo_emissor("tec", msg.tec_msg)
             emissor_msg["representante"] = False
+            emissor_msg["cor_avatar"] = getattr(msg.tec_msg, "cor_avatar", None)
         elif msg.prof_msg:
             emissor_msg["tipo_usuario"] = "prof"
             emissor_msg["id_usuario"] = msg.id_prof_msg
             emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof
             emissor_msg["rotulo_emissor"] = rotulo_emissor("prof", msg.prof_msg)
             emissor_msg["representante"] = False
+            emissor_msg["cor_avatar"] = getattr(msg.prof_msg, "cor_avatar", None)
         elif msg.coor_msg:
             emissor_msg["tipo_usuario"] = "coor"
             emissor_msg["id_usuario"] = msg.id_coor_msg
             emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor
             emissor_msg["rotulo_emissor"] = rotulo_emissor("coor", msg.coor_msg)
             emissor_msg["representante"] = False
+            emissor_msg["cor_avatar"] = getattr(msg.coor_msg, "cor_avatar", None)
         elif msg.dir_msg:
             emissor_msg["tipo_usuario"] = "dir"
             emissor_msg["id_usuario"] = msg.id_dir_msg
             emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir
             emissor_msg["rotulo_emissor"] = rotulo_emissor("dir", msg.dir_msg)
             emissor_msg["representante"] = False
+            emissor_msg["cor_avatar"] = getattr(msg.dir_msg, "cor_avatar", None)
 
         res_msg.append({
             "id_msg": msg.id_msg,
@@ -423,18 +428,23 @@ def api_enviar_mensagem():
     if tipo_usuario == "aluno":
         emissor_msg["nome_usuario"] = msg.aluno_msg.nome_aluno if msg.aluno_msg else None
         emissor_msg["rotulo_emissor"] = rotulo_emissor("aluno", msg.aluno_msg) if msg.aluno_msg else None
+        emissor_msg["cor_avatar"] = getattr(msg.aluno_msg, "cor_avatar", None)
     elif tipo_usuario == "tec":
         emissor_msg["nome_usuario"] = msg.tec_msg.nome_tec if msg.tec_msg else None
         emissor_msg["rotulo_emissor"] = rotulo_emissor("tec", msg.tec_msg) if msg.tec_msg else None
+        emissor_msg["cor_avatar"] = getattr(msg.tec_msg, "cor_avatar", None)
     elif tipo_usuario == "prof":
         emissor_msg["nome_usuario"] = msg.prof_msg.nome_prof if msg.prof_msg else None
         emissor_msg["rotulo_emissor"] = rotulo_emissor("prof", msg.prof_msg) if msg.prof_msg else None
+        emissor_msg["cor_avatar"] = getattr(msg.prof_msg, "cor_avatar", None)
     elif tipo_usuario == "coor":
         emissor_msg["nome_usuario"] = msg.coor_msg.nome_coor if msg.coor_msg else None
         emissor_msg["rotulo_emissor"] = rotulo_emissor("coor", msg.coor_msg) if msg.coor_msg else None
+        emissor_msg["cor_avatar"] = getattr(msg.coor_msg, "cor_avatar", None)
     elif tipo_usuario == "dir":
         emissor_msg["nome_usuario"] = msg.dir_msg.nome_dir if msg.dir_msg else None
         emissor_msg["rotulo_emissor"] = rotulo_emissor("dir", msg.dir_msg) if msg.dir_msg else None
+        emissor_msg["cor_avatar"] = getattr(msg.dir_msg, "cor_avatar", None)
 
     return jsonify({
         "success": True,

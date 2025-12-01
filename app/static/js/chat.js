@@ -229,6 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 if (input_chat) input_chat.disabled = false
                 if (enviar_chat) enviar_chat.disabled = false
+
                 resetar_placeholder()
             }
 
@@ -384,22 +385,46 @@ document.addEventListener("DOMContentLoaded", () => {
             const top_container = document.createElement("div")
             top_container.className = "d-flex justify-content-between align-items-center mb-1"
 
-            const meta = document.createElement("div")
-            meta.className = "small fst-italic"
+            const left_meta = document.createElement("div")
+            left_meta.className = "d-flex align-items-center"
 
+            const avatarSpan = document.createElement("span")
+            avatarSpan.className = "d-inline-flex align-items-center justify-content-center text-white fw-bold"
+            avatarSpan.style.width = "28px"
+            avatarSpan.style.height = "28px"
+            avatarSpan.style.borderRadius = "50%"
+            avatarSpan.style.fontSize = "13px"
+            avatarSpan.style.lineHeight = "1"
+            avatarSpan.style.flex = "0 0 28px"
+            avatarSpan.style.textAlign = "center"
+
+            const avatarColor = (emissor && emissor.cor_avatar) ? String(emissor.cor_avatar) : "#6c757d"
+            avatarSpan.style.backgroundColor = avatarColor
+
+            let inicial = "?"
+            if (emissor && emissor.nome_usuario) {
+                const tmp = String(emissor.nome_usuario).trim()
+                inicial = tmp ? tmp.charAt(0).toUpperCase() : "?"
+            }
+            avatarSpan.textContent = inicial
+
+            const metaInline = document.createElement("div")
+            metaInline.className = "small fst-italic ms-2"
             if (sou_eu) {
-                meta.classList.add("text-white-50")
-                meta.style.textAlign = "left"
+                metaInline.classList.add("text-white-50")
             } else {
-                meta.classList.add("text-muted")
-                meta.style.textAlign = "left"
+                metaInline.classList.add("text-muted")
             }
 
             const label = rotulo_emissor || nome_usuario
 
-            meta.textContent = `${label} • ${string_data_hora_msg}`
+            metaInline.textContent = `${label} • ${string_data_hora_msg}`
 
-            top_container.appendChild(meta)
+            left_meta.appendChild(avatarSpan)
+            left_meta.appendChild(metaInline)
+
+            const right_wrapper = document.createElement("div")
+            right_wrapper.className = "d-flex align-items-center"
 
             if (pode_deletar) {
                 const btn_exluir = document.createElement("button")
@@ -460,8 +485,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
 
-                top_container.appendChild(btn_exluir)
-            }  
+                right_wrapper.appendChild(btn_exluir)
+            }
+
+            top_container.appendChild(left_meta)
+            top_container.appendChild(right_wrapper)
 
             const texto = document.createElement("div")
             texto.innerHTML = formatarHTML(msg.texto_msg)
