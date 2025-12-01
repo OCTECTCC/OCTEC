@@ -12,6 +12,10 @@ def create_app(config_object="app.config.Config"):
 
     app.config.from_object(config_object)
 
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -19,6 +23,15 @@ def create_app(config_object="app.config.Config"):
     login_manager.login_view = "views.login"
     login_manager.login_message = "Por favor, entre para acessar esta página"
     login_manager.login_message_category = "info"
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'DENY')
+        return response
 
     from .models import Alunos, Tecnicos, Professores, Coordenadores, Diretores
 

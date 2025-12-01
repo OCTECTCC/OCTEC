@@ -22,3 +22,21 @@ document.querySelectorAll(".accordion").forEach(gaveta => {
     gaveta.addEventListener("shown.bs.collapse", atualizar_altura_header)
     gaveta.addEventListener("hidden.bs.collapse", atualizar_altura_header)
 })
+
+(function(){
+  const loginUrl = document.body && document.body.dataset && document.body.dataset.loginUrl ? document.body.dataset.loginUrl : "/login";
+
+  fetch("/api/some_ping", { method: "GET", cache: "no-store" })
+    .then(r => {
+      if (r.status === 401 || r.status === 403) {
+        window.location.href = loginUrl;
+      }
+    })
+    .catch(()=>{});
+})();
+
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    window.location.reload(true);
+  }
+});

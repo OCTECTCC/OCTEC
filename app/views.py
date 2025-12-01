@@ -1,6 +1,6 @@
 import re
 from . import db
-from datetime import timezone, timedelta
+from datetime import timezone, timedelta, datetime
 from collections import defaultdict
 from flask import render_template, Blueprint, redirect, url_for, request, session, flash, jsonify, current_app, abort
 from flask_login import current_user, login_user, logout_user, login_required
@@ -15,6 +15,16 @@ try:
 except Exception:
     ZoneInfo = None
     fuso_horario_disponivel = False
+
+def login_seguro(usuario, redirect_to="views.index"):
+    try:
+        logout_user()
+    except Exception:
+        pass
+
+    session.clear()
+    login_user(usuario, fresh=True)
+    return redirect(url_for(redirect_to))
 
 views = Blueprint("views", __name__)
 
@@ -759,6 +769,9 @@ def api_solicitacoes_excluir():
 
 @views.route("/login", methods=["GET","POST"])
 def login():
+    session.pop("session_tipo_usuario", None)
+    session.pop("session_login_usuario", None)    
+
     if current_user.is_authenticated:
         return redirect(url_for("views.index"))
     
@@ -820,8 +833,7 @@ def login():
                 return redirect(url_for("views.primeiro_acesso"))
             
             if correspondencia:
-                login_user(aluno)
-                return redirect(url_for("views.index"))
+                return login_seguro(aluno)
             
             flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 2:
@@ -843,8 +855,7 @@ def login():
                 return redirect(url_for("views.primeiro_acesso"))
             
             if correspondencia:
-                login_user(tecnico)
-                return redirect(url_for("views.index"))
+                return login_seguro(tecnico)
             
             flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 3:
@@ -866,8 +877,7 @@ def login():
                 return redirect(url_for("views.primeiro_acesso"))
             
             if correspondencia:
-                login_user(professor)
-                return redirect(url_for("views.index"))
+                return login_seguro(professor)
             
             flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 4:
@@ -889,8 +899,7 @@ def login():
                 return redirect(url_for("views.primeiro_acesso"))
             
             if correspondencia:
-                login_user(coordenador)
-                return redirect(url_for("views.index"))
+                return login_seguro(coordenador)
             
             flash("Usuário ou senha incorretos", "danger")
         elif tipo_usuario == 5:
@@ -912,8 +921,8 @@ def login():
                 return redirect(url_for("views.primeiro_acesso"))
             
             if correspondencia:
-                login_user(diretor)
-                return redirect(url_for("views.index"))
+                return login_seguro(diretor)
+            
             flash("Usuário ou senha incorretos", "danger")
         else:
             flash("Tipo de usuário inválido", "danger")
@@ -1096,12 +1105,51 @@ def api_solicitar_redefinicao():
         current_app.logger.exception("Erro ao criar solicitação: %s", exception)
         return jsonify({"error": "Erro ao criar solicitação"}), 500
 
-@views.route("/logout")
+@views.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
-    logout_user()
+    try:
+        logout_user()
+    except Exception:
+        current_app.logger.exception("Erro em logout_user()")
+
     session.clear()
-    return redirect(url_for("views.login"))
+
+    resp = redirect(url_for("views.login"))
+
+    session_cookie_name = current_app.config.get("SESSION_COOKIE_NAME", "session")
+
+    resp.delete_cookie(
+        session_cookie_name,
+        path='/',
+        domain=current_app.config.get("SESSION_COOKIE_DOMAIN", None)
+    )
+
+    remember_cookie_name = current_app.config.get("REMEMBER_COOKIE_NAME")
+
+    if not remember_cookie_name:
+        remember_cookie_name = getattr(current_app, "login_manager", None) and getattr(current_app.login_manager, "remember_cookie_name", None)
+    if not remember_cookie_name:
+        remember_cookie_name = "remember_token"
+
+    resp.delete_cookie(
+        remember_cookie_name,
+        path='/',
+        domain=current_app.config.get("SESSION_COOKIE_DOMAIN", None)
+    )
+
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+
+    return resp
+
+@views.route("/api/some_ping")
+def api_some_ping():
+    if not current_user.is_authenticated:
+        return jsonify({"ok": False}), 401
+    
+    return jsonify({"ok": True}), 200
 
 @views.route("/perfil")
 @login_required
@@ -1332,7 +1380,7 @@ def primeiro_acesso():
             session.pop("session_login_usuario", None)
 
             try:
-                login_user(usuario)
+                return login_seguro(usuario)
             except Exception:
                 flash("Senha redefinida com sucesso! Faça login", "success")
                 return redirect(url_for("views.login"))

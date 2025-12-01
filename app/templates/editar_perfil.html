@@ -14,7 +14,9 @@
           <a href="{{ url_for('views.perfil') }}" class="list-group-item list-group-item-action">Visão geral</a>
           <a href="{{ url_for('views.editar_perfil') }}" class="list-group-item list-group-item-action text-bg-danger">Editar perfil</a>
           <a href="{{ url_for('views.alterar_senha') }}" class="list-group-item list-group-item-action">Alterar senha</a>
-          <a href="{{ url_for('views.logout') }}" class="list-group-item list-group-item-action text-danger border-bottom">Sair</a>
+          <form id="form_logout" action="{{ url_for('views.logout') }}" method="post" class="d-inline">
+            <button class="list-group-item list-group-item-action text-danger border-bottom" type="submit" title="Sair">Sair</button>
+          </form>
         </nav>
         <div class="d-flex align-items-center p-2 border-top">
           <img src="{{ url_for('static', filename='img/logo_V2.png') }}" alt="OCTEC" style="height: 40px">

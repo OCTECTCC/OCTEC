@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     </head>
-    <body class="d-flex flex-column min-vh-100 text-bg-light overflow-md-hidden">
+    <body class="d-flex flex-column min-vh-100 text-bg-light overflow-md-hidden" data-login-url="{{ url_for('views.login') }}">
         {% block body %}
             {% if current_user.is_authenticated %}
                 <header id="header" class="d-flex container-fluid border-bottom py-2">
@@ -24,9 +24,11 @@
                         <a class="btn btn-sm btn-outline-dark" href="{{ url_for('views.perfil') }}" title="Perfil">
                             <i class="bi bi-person-circle"></i>
                         </a>
-                        <a class="btn btn-sm btn-outline-danger" href="{{ url_for('views.logout') }}" title="Sair">
-                            <i class="bi bi-box-arrow-right"></i>
-                        </a>
+                        <form action="{{ url_for('views.logout') }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Sair">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </button>
+                        </form>
                     </div>
                 </header>
                 <main class="d-flex flex-grow-1 text-bg-dark overflow-hidden">
