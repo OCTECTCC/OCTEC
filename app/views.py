@@ -1114,31 +1114,25 @@ def logout():
         current_app.logger.exception("Erro em logout_user()")
 
     session.clear()
+    session.modified = True
 
     resp = redirect(url_for("views.login"))
 
     session_cookie_name = current_app.config.get("SESSION_COOKIE_NAME", "session")
+    session_cookie_domain = current_app.config.get("SESSION_COOKIE_DOMAIN", None)
 
-    resp.delete_cookie(
-        session_cookie_name,
-        path='/',
-        domain=current_app.config.get("SESSION_COOKIE_DOMAIN", None)
-    )
+    expires = datetime.utcfromtimestamp(0)
+    resp.set_cookie(session_cookie_name, "", expires=expires, path="/", domain=session_cookie_domain, httponly=True)
 
     remember_cookie_name = current_app.config.get("REMEMBER_COOKIE_NAME")
-
     if not remember_cookie_name:
         remember_cookie_name = getattr(current_app, "login_manager", None) and getattr(current_app.login_manager, "remember_cookie_name", None)
     if not remember_cookie_name:
         remember_cookie_name = "remember_token"
 
-    resp.delete_cookie(
-        remember_cookie_name,
-        path='/',
-        domain=current_app.config.get("SESSION_COOKIE_DOMAIN", None)
-    )
+    resp.set_cookie(remember_cookie_name, "", expires=expires, path="/", domain=session_cookie_domain, httponly=True)
 
-    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
     resp.headers['Pragma'] = 'no-cache'
     resp.headers['Expires'] = '0'
 

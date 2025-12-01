@@ -24,19 +24,42 @@ document.querySelectorAll(".accordion").forEach(gaveta => {
 })
 
 (function(){
-  const loginUrl = document.body && document.body.dataset && document.body.dataset.loginUrl ? document.body.dataset.loginUrl : "/login";
+  const loginUrl = document.body && document.body.dataset && document.body.dataset.loginUrl ? document.body.dataset.loginUrl : "/login"
 
-  fetch("/api/some_ping", { method: "GET", cache: "no-store" })
-    .then(r => {
-      if (r.status === 401 || r.status === 403) {
-        window.location.href = loginUrl;
+  async function checkAuthAndRedirect() {
+    try {
+      const resp = await fetch("/api/some_ping", {
+        method: "GET",
+        cache: "no-store",
+        credentials: "same-origin"
+      })
+
+      if (resp.status === 401 || resp.status === 403) {
+        if (window.location.pathname !== new URL(loginUrl, window.location.origin).pathname) {
+          window.location.href = loginUrl
+        }
       }
-    })
-    .catch(()=>{});
-})();
+    } catch (e) {}
+  }
+
+  window.addEventListener("load", checkAuthAndRedirect)
+
+  window.addEventListener("pageshow", function(event) {
+    checkAuthAndRedirect()
+  })
+
+  window.addEventListener("popstate", function() {
+    checkAuthAndRedirect()
+  })
+
+  document.addEventListener("visibilitychange", function() {
+    if (document.visibilityState === "visible") checkAuthAndRedirect()
+  })
+
+})()
 
 window.addEventListener('pageshow', function(event) {
   if (event.persisted) {
-    window.location.reload(true);
+    window.location.reload(true)
   }
-});
+})

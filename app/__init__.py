@@ -26,11 +26,21 @@ def create_app(config_object="app.config.Config"):
 
     @app.after_request
     def add_security_headers(response):
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
+
+        response.headers['Vary'] = response.headers.get('Vary', '')
+        if 'Cookie' not in response.headers['Vary']:
+            if response.headers['Vary'].strip():
+                response.headers['Vary'] = response.headers['Vary'].strip() + ', Cookie'
+            else:
+                response.headers['Vary'] = 'Cookie'
+
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
         response.headers.setdefault('X-Frame-Options', 'DENY')
+        response.headers.setdefault('Surrogate-Control', 'no-store')
+
         return response
 
     from .models import Alunos, Tecnicos, Professores, Coordenadores, Diretores
